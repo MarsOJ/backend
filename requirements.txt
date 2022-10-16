@@ -1,0 +1,10 @@
+flask
+flask-socketio
+simple-websocket
+flask-login
+flask-sock
+python-language-server[all]
+pytest
+flask-cors
+pytest-cov
+gunicorn
