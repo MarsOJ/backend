@@ -2,7 +2,6 @@ pipeline {
   agent {
         docker {
             image 'python:3.10' 
-            label 'docker-node'
         }
     }
   stages {
