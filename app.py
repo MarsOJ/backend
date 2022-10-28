@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_cors import CORS
-from views.dockers import *
 from views.database import *
 from views.login import login_bp
 import os
@@ -17,7 +16,6 @@ def hello_world():
     return "<p>Hello, World!</p>"
 
 # init database
-db_init()
 
 # prepare docker images
 os.system("python images/setup.sh")
