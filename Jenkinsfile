@@ -14,7 +14,7 @@ pipeline {
 
     stage('Install Independencies') {
       steps {
-        sh '/usr/bin/python -m pip install --upgrade pip  &&   pip3.7 install -U flake8 flake8-bugbear flake8-import-order pytest  &&     if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi'
+        sh 'pip3.7 install -U flake8 flake8-bugbear flake8-import-order pytest  &&     if [ -f requirements.txt ]; then pip3.7 install -r requirements.txt; fi'
       }
     }
 
