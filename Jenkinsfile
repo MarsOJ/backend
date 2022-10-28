@@ -14,13 +14,13 @@ pipeline {
 
     stage('Install Independencies') {
       steps {
-        sh 'pip3.7 install flake8 flake8-bugbear flake8-import-order pytest -i https://pypi.tuna.tsinghua.edu.cn/simple  &&     if [ -f requirements.txt ]; then pip3.7 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple; fi'
+        sh 'pip3 install flake8 flake8-bugbear flake8-import-order pytest -i https://pypi.tuna.tsinghua.edu.cn/simple  &&     if [ -f requirements.txt ]; then pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple; fi'
       }
     }
 
     stage('Lint with flake8') {
       steps {
-        sh 'python3.7 -m flake8 . --count --select=E9,F63,F7,F82 --show-source --statistic'
+        sh 'python3 -m flake8 .'
       }
     }
 
