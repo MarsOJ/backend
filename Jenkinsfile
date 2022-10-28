@@ -14,7 +14,7 @@ pipeline {
 
     stage('Install Independencies') {
       steps {
-        sh '/usr/bin/python -m pip install --upgrade pip  &&   pip3 install flake8 pytest   &&     if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi'
+        sh '/usr/bin/python -m pip install --upgrade pip  &&   pip3 install flake8 pytest pycodestyle  &&     if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi'
       }
     }
 
