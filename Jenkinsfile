@@ -14,7 +14,7 @@ pipeline {
 
     stage('Install Independencies') {
       steps {
-        sh 'pip3.7 install flake8 flake8-bugbear flake8-import-order pytest -i https://pypi.tuna.tsinghua.edu.cn/simple  &&     if [ -f requirements.txt ]; then pip3.7 install -r requirements.txt; fi'
+        sh 'pip3.7 install flake8 flake8-bugbear flake8-import-order pytest -i https://pypi.tuna.tsinghua.edu.cn/simple  &&     if [ -f requirements.txt ]; then pip3.7 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple; fi'
       }
     }
 
