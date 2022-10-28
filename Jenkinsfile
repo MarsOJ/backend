@@ -14,13 +14,13 @@ pipeline {
 
     stage('Install Independencies') {
       steps {
-        sh 'python3 -m pip install --upgrade pip        pip3 install flake8 pytest        if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi'
+        sh '/usr/bin/python -m pip install --upgrade pip  &&   pip3 install flake8 pytest   &&     if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi'
       }
     }
 
     stage('Lint with flake8') {
       steps {
-        sh 'flake8 . --count --select=E9,F63,F7,F82 --show-source --statistic           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics'
+        sh 'flake8 . --count --select=E9,F63,F7,F82 --show-source --statistic  &&   flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics'
       }
     }
 
