@@ -12,10 +12,10 @@ class AuthActions(object):
     def login(self, username='test', password='test'):
         # with self._client.session_transaction() as session:
         #     session['username'] = 'test'
-        self._client.post(
-            '/login/register/',
-            json={'username': username, 'password': password}
-        )
+        # self._client.post(
+        #     '/login/register/',
+        #     json={'username': username, 'password': password}
+        # )
         return self._client.post(
             '/login/',
             json={'username': username, 'password': password}
