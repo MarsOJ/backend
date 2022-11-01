@@ -68,7 +68,7 @@ def db_update_user(name, newpw):
         user = {
             'username':name
         }
-        newpwhash = generate_password_hash('NAME:'+name+'|PW:'+pw, method='pbkdf2:sha256', salt_length=8)
+        newpwhash = generate_password_hash('NAME:'+name+'|PW:'+newpw, method='pbkdf2:sha256', salt_length=8)
         update_res = collection.update_one(user, {'$set':{'pwhash':newpwhash}})
         if update_res.update_count != 1:
             return False
