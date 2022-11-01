@@ -9,7 +9,7 @@ def test_index(client):
 def test_blueprint(client):
     response = client.get("/database/")
     assert b"Database Index" in response.data    
-    response = client.get("/user/")
-    assert b"User Index" in response.data 
+    response = client.get("/account/")
+    assert b"Account Index" in response.data 
     response = client.get("/info/")
     assert b"Info Index" in response.data
