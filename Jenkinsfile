@@ -28,6 +28,7 @@ pipeline {
         sh 'mkdir /usr/local/mongodb'
         sh 'tar -zxvf mongodb-linux-x86_64-rhel80-5.0.4.tgz -C /usr/local/mongodb'
         sh 'cd /usr/local/mongodb'
+        sh 'ls'
         sh 'mv mongodb-linux-x86_64-rhel80-5.0.4 mongodbserver'
         sh 'mkdir -p /var/lib/mongo'
         sh 'mkdir -p /var/log/mongodb'
