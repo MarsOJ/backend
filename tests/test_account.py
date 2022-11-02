@@ -69,3 +69,4 @@ def test_change_password(client):
         assert "username" not in session
         res = client.delete('/account/delete/', json=delete_data)
         assert '200' in str(res)
+        assert False
