@@ -22,6 +22,22 @@ pipeline {
       }
     }
 
+    stage('Install MongoDB'){
+      steps{
+        sh 'wget https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-rhel80-5.0.4.tgz'
+        sh 'mkdir /usr/local/mongodb'
+        sh 'tar -zxvf mongodb-linux-x86_64-rhel80-5.0.4.tgz -C /usr/local/mongodb'
+        sh 'cd /usr/local/mongodb'
+        sh 'mv mongodb-linux-x86_64-rhel80-5.0.4 mongodbserver'
+        sh 'mkdir -p /var/lib/mongo'
+        sh 'mkdir -p /var/log/mongodb'
+        sh 'chmod 777 /var/lib/mongo'
+        sh 'chmod 777 /var/log/mongodb'
+        sh 'export PATH=/usr/local/mongodb/mongodbserver/bin:$PATH'
+        sh 'mongod --dbpath /var/lib/mongo --logpath /var/log/mongodb/mongod.log --fork'
+      }
+    }
+
     stage('Lint with flake8') {
       steps {
         sh 'flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics && flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics'

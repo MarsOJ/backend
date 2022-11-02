@@ -3,7 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import pymongo
 
 database_bp = Blueprint("database", __name__)
-client = pymongo.MongoClient()
+client = pymongo.MongoClient("mongodb://localhost:27017/")
 
 # use blueprint as app
 @database_bp.route("/")
