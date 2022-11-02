@@ -12,15 +12,16 @@ def database_index():
 
 def db_select_user(name):
     try:
+        
+        client = pymongo.MongoClient("mongodb://localhost:27017/")
         db = client["MarsOJ"]
         collection = db["account"]
         user = {
             'username':name
         }
-        res = collection.find_one(user)
-        print(res)
-        return res
-    except:
+        return collection.find_one(user)
+    except Exceptionas as e:
+        print(e)
         return False
 
 def db_insert_user(name, pw):
