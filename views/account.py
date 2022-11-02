@@ -15,9 +15,8 @@ def login_required(func):
     def wrapper(*args, **kargs):
         if 'username' not in session:
             abort(401)
-        return func(args, kargs)
+        return func(*args, **kargs)
     return wrapper
-
 
 @account_bp.route("/login/", methods=['POST'])
 def login():
@@ -33,15 +32,15 @@ def login():
     return "Username/Password Error", 400
 
 @account_bp.route("/logout/", methods=['POST'])
-@login_required
 def logout():
     session.pop('username', None)
     return "success", 200
 
-@account_bp.route("/check-state/", methods=['GET'])
-@login_required
+@account_bp.route("/state/", methods=['GET'])
 def check_login_state():
-    return session['username'], 200
+    if 'username' in session:
+        return session['username'], 200
+    return "Unlogged", 400
 
 @account_bp.route("/register/", methods=['POST'])
 def register():
