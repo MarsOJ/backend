@@ -34,13 +34,13 @@ def login():
 @account_bp.route("/logout/", methods=['POST'])
 def logout():
     session.pop('username', None)
-    return "success", 200
+    return "Success", 200
 
 @account_bp.route("/state/", methods=['GET'])
 def check_login_state():
     if 'username' in session:
         return session['username'], 200
-    return "Unlogged", 400
+    return "Not Logged In", 400
 
 @account_bp.route("/register/", methods=['POST'])
 def register():
