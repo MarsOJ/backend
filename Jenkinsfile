@@ -33,7 +33,7 @@ pipeline {
         sh 'mkdir -p /var/log/mongodb'
         sh 'chmod 777 /var/lib/mongo'
         sh 'chmod 777 /var/log/mongodb'
-        sh 'ln -sf mongod /usr/local/mongodb/mongodbserver/bin/mongod && ln -sf mongo /usr/local/mongodb/mongodbserver/bin/mongo && ln -sf mongos /usr/local/mongodb/mongodbserver/bin/mongos'
+        sh 'ln -sf /usr/local/mongodb/mongodbserver/bin/mongod /usr/bin/mongod&& ln -sf /usr/local/mongodb/mongodbserver/bin/mongo /usr/bin/mongo && ln -sf /usr/local/mongodb/mongodbserver/bin/mongos /usr/bin/mongos'
         sh 'mongod --dbpath /var/lib/mongo --logpath /var/log/mongodb/mongod.log --fork'
       }
     }
