@@ -12,11 +12,15 @@ def database_index():
 
 def db_select_user(name):
     try:
+        print("1")
         db = client["MarsOJ"]
+        print("2")
         collection = db["account"]
+        print("3")
         user = {
             'username':name
         }
+        print("4")
         return collection.find_one(user)
     except:
         return False

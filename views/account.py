@@ -49,7 +49,10 @@ def register():
         data = json.loads(request.data)
         username = data['username']
         password = data['password']
-        if db_select_user(username) is not None:
+        res = db_select_user(username)
+        if res is False:
+            return "Register Error", 400
+        if res is not None:
             return "Repeated Username", 400
         if not db_insert_user(username, password):
             return "Register Error", 400
