@@ -140,7 +140,7 @@ def db_update_info(_id, title, content, source):
             'content': content,
             'source' : source,
         }
-        update_res = collection.update_one(user, {'$set':update_data})
+        update_res = collection.update_one({'_id':ObjectId(_id)}, update_data)
         if update_res.modified_count < 1:
             return False
         return True

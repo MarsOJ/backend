@@ -1,4 +1,6 @@
 from flask import Blueprint, Flask, request, session, jsonify
+from views.database import *
+import json
 
 info_bp = Blueprint("info", __name__)
 
