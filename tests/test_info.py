@@ -26,7 +26,6 @@ def test_insert(client):
          res = client.get('/info/get-latest/')
          res_first = json.loads(res.data.decode('utf-8'))[0]
          res_first_id = res_first['id']
-         print(res_first_id)
          assert '软件工程' in str(res_first)
          res = client.get('/info/get-latest/', json={'lastId':res_first_id})
          res_second = json.loads(res.data.decode('utf-8'))[0]
@@ -40,5 +39,3 @@ def test_insert(client):
          assert 'for me personally' in str(json.loads(res.data.decode('utf-8')))
          res = client.delete('/info/delete/{}'.format(res_second_id))
          assert '200' in str(res)
-
-         

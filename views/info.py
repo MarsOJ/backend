@@ -55,5 +55,5 @@ def get_last():
         item['id'] = str(item['_id'])
         del item['_id']
         del item['content']
-        item['date'].strftime("YYYY-MM-DD HH:mm:ss.mmmmmm")
-    return find_res, 200
+        item['date'] = item['date'].strftime('%Y-%m-%d')
+    return json.dumps(find_res), 200
