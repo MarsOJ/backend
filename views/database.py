@@ -95,13 +95,19 @@ def db_select_info(_id):
     except Exception as e:
         return False
 
-def db_tail_info():
+def db_next_info(_id=''):
     try:
         collection = db["info"]
-        find_res = collection.find({}, sort=[{'date':pymongo.DESCENDING}], limit=5)
+        if _id == '':
+            condition = None
+        else:
+            last_date = db_select_info(_id)['date']
+            condition = {'date':{'$lt':last_date}}
+        find_res = collection.find(filter=condition, sort=[('date',pymongo.DESCENDING)], limit=5)
         find_res = list(find_res)
         return find_res
-    except:
+    except Exception as e:
+        print(e)
         return False
 
 

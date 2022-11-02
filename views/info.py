@@ -30,7 +30,7 @@ def delete_info(id):
 
 @info_bp.route("/details/<id>", methods=['GET'])
 def get_details(id):
-    selete_res = db_selete_info(id)
+    selete_res = db_select_info(id)
     if selete_res:
         try:
             selete_res['id'] = str(selete_res['_id'])
@@ -40,10 +40,19 @@ def get_details(id):
             return "Get Details Error", 400
     return "Get Details Error", 400
 
-@info_bp.route("/get-last/", methods=['GET'])
+@info_bp.route("/get-latest/", methods=['GET'])
 def get_last():
-    find_res = db_tail_info()
+    try:
+        data = json.loads(request.data)
+        last_id = data['lastId']
+    except:
+        last_id = ''
+    find_res = db_next_info(last_id)
+    if find_res is False:
+        return "Get Error", 400
     for item in find_res:
         item['id'] = str(item['_id'])
         del item['_id']
+        del item['content']
+        item['date'].strftime("YYYY-MM-DD HH:mm:ss.mmmmmm")
     return find_res, 200
