@@ -24,18 +24,18 @@ def test_insert(client):
          res = client.post('/info/insert/', json=info2_data)
          assert '200' in str(res)
          res = client.get('/info/get-latest/')
-         res_first = json.loads(res.data.decode('utf-8'))[0]
+         res_first = json.loads(res.data)[0]
          res_first_id = res_first['id']
          assert '软件工程' in str(res_first)
          res = client.get('/info/get-latest/', json={'lastId':res_first_id})
-         res_second = json.loads(res.data.decode('utf-8'))[0]
+         res_second = json.loads(res.data)[0]
          res_second_id = res_second['id']
          assert 'Software Engineering' in str(res_second)
          res = client.delete('/info/delete/{}'.format(res_first_id))
          assert '200' in str(res)
          res = client.get('/info/get-latest/', json={'lastId':''})
-         assert 'Software Engineering' in str(json.loads(res.data.decode('utf-8'))[0])
+         assert 'Software Engineering' in str(json.loads(res.data)[0])
          res = client.get('/info/details/{}'.format(res_second_id))
-         assert 'for me personally' in str(json.loads(res.data.decode('utf-8')))
+         assert 'for me personally' in str(json.loads(res.data))
          res = client.delete('/info/delete/{}'.format(res_second_id))
          assert '200' in str(res)

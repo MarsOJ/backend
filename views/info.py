@@ -35,8 +35,8 @@ def get_details(id):
         try:
             selete_res['id'] = str(selete_res['_id'])
             del selete_res['_id']
-            item['date'].strftime("YYYY-MM-DD HH:mm:ss.mmmmmm")
-            return selete_res, 200
+            selete_res['date'] = selete_res['date'].strftime("%Y-%m-%d")
+            return json.dumps(selete_res), 200
         except:
             return "Get Details Error", 400
     return "Get Details Error", 400
