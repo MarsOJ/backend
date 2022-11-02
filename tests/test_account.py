@@ -10,6 +10,7 @@ def test_login(client):
     with client:
         client.post('/account/init/')
         res = client.post('/account/register/', json=user_data)
+        assert '200' in str(res)
         client.post('/account/login/', json=user_data)
         assert "username" in session
         res = client.delete('/account/delete/', json=user_data)
