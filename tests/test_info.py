@@ -34,7 +34,7 @@ def test_insert(client):
          assert 'Software Engineering' in str(res_second)
          res = client.delete('/info/delete/{}'.format(res_first_id))
          assert '200' in str(res)
-         res = client.get('/info/get-latest/', json={'id':''})
+         res = client.get('/info/get-latest/', json={'lastId':''})
          assert 'Software Engineering' in str(json.loads(res.data.decode('utf-8'))[0])
          res = client.get('/info/details/{}'.format(res_second_id))
          assert 'for me personally' in str(json.loads(res.data.decode('utf-8')))
