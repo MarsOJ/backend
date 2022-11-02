@@ -3,7 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import pymongo
 
 database_bp = Blueprint("database", __name__)
-client = pymongo.MongoClient("mongodb://localhost:27017/")
+client = pymongo.MongoClient()
 
 # use blueprint as app
 @database_bp.route("/")
@@ -12,8 +12,6 @@ def database_index():
 
 def db_select_user(name):
     try:
-        
-        client = pymongo.MongoClient("mongodb://localhost:27017/")
         db = client["MarsOJ"]
         collection = db["account"]
         user = {
