@@ -20,7 +20,7 @@ def db_select_user(name):
             'username':name
         }
         return collection.find_one(user)
-    except Exceptionas as e:
+    except Exception as e:
         print(e)
         return False
 
