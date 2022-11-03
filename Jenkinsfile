@@ -28,12 +28,14 @@ pipeline {
           withCredentials([
             sshUserPrivateKey(
               credentialsId: "${REMOTE_CRED}",
-              keyFileVariable: "privateKeyFilePath"
+              keyFileVariable: "/home/ubuntu/.ssh/id_ed25519"
             ),
           ]) {
             // SSH 登录用户名
             remoteConfig.user = "${REMOTE_USER_NAME}"
             remoteConfig.password = "${REMOTE_USER_PASSWORD}"
+            // SSH 私钥文件地址
+            remoteConfig.identityFile = privateKeyFilePath
 
             sshCommand(
               remote: remoteConfig,
