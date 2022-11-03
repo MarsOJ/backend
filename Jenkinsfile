@@ -19,7 +19,7 @@ pipeline {
 
     stage('Remote Deploy') {
       steps {
-        sh 'apt-get -y install -f sshpass'
+        sh 'wget http://sourceforge.net/projects/sshpass/files/latest/download -O sshpass.tar.gz && tar -zxvf sshpass.tar.gz && cd sshpass-1.08 && ./configure && make && make install'
         sh 'sshpass -p ${SERVER_PASSWORD} ssh ${SERVER_USERNAME}@${SERVER_HOST}'
         sh 'ls'
       }
