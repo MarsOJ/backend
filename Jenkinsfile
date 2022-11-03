@@ -15,14 +15,13 @@ pipeline {
         ]]])
       }
     }
-    def remoteConfig = [:]
-              remoteConfig.name = "CODING-remote-deploy"
-              remoteConfig.host = "${REMOTE_HOST}"
-              remoteConfig.user = "${REMOTE_USER_NAME}"
-              remoteConfig.password = "${REMOTE_USER_PASSWORD}"
-              remoteConfig.allowAnyHosts = true
     stage("Remote Deploy") {
-      sshCommand remote: remote, command: "ls"
+      environment {
+                BITBUCKET_COMMON_CREDS = credentials('admin:123456')
+      }
+      steps{
+    
+        sh "ssh ubuntu@82.157.17.219 && ls"
     }
   }
 }
