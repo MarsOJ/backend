@@ -50,9 +50,34 @@ pipeline {
       }
     }
 
-  }
-  environment {
-    CODING_DOCKER_REG_HOST = "${CCI_CURRENT_TEAM}-docker.pkg.${CCI_CURRENT_DOMAIN}"
-    CODING_DOCKER_IMAGE_NAME = "${PROJECT_NAME.toLowerCase()}/${DOCKER_REPO_NAME}/${DOCKER_IMAGE_NAME}"
+    stage("Remote Deploy") {
+      steps {
+        script {
+          def remoteConfig = [:]
+          remoteConfig.name = "CODING-remote-deploy"
+          remoteConfig.host = "${REMOTE_HOST}"
+          remoteConfig.port = "${REMOTE_SSH_PORT}".toInteger()
+          remoteConfig.allowAnyHosts = true
+
+          withCredentials([
+            sshUserPrivateKey(
+              credentialsId: "${REMOTE_CRED}",
+              keyFileVariable: "privateKeyFilePath"
+            ),
+          ]) {
+            // SSH 登录用户名
+            remoteConfig.user = "${REMOTE_USER_NAME}"
+            remoteConfig.password = "${REMOTE_USER_PASSWORD}"
+
+            sshCommand(
+              remote: remoteConfig,
+              command: "bash /home/ubuntu/deploy/deploy.sh",
+              sudo: true,
+            )
+
+          }
+        }
+      }
+    }
   }
 }
