@@ -22,6 +22,7 @@ pipeline {
       steps{
     
         sh "ssh ubuntu@82.157.17.219 && ls"
+      }
     }
   }
 }
