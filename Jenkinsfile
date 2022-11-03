@@ -1,9 +1,10 @@
 pipeline {
   agent {
-        docker {
-            image 'python:3.8' 
-        }
+    docker {
+      image 'python:3.8'
     }
+
+  }
   stages {
     stage('Checkout') {
       steps {
@@ -15,14 +16,14 @@ pipeline {
         ]]])
       }
     }
-    stage("Remote Deploy") {
-      environment {
-                BITBUCKET_COMMON_CREDS = credentials('admin:123456')
-      }
-      steps{
-    
-        sh "ssh ubuntu@82.157.17.219 && ls"
+
+    stage('Remote Deploy') {
+      steps {
+        sh 'apt-get -y install -f sshpass'
+        sh 'sshpass -p ${SERVER_PASSWORD} ssh ${SERVER_USERNAME}@${SERVER_HOST}'
+        sh 'ls'
       }
     }
+
   }
 }
