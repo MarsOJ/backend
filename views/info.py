@@ -41,7 +41,7 @@ def get_details(id):
             return "Get Details Error", 400
     return "Get Details Error", 400
 
-@info_bp.route("/get-latest/", methods=['GET'])
+@info_bp.route("/get-latest/", methods=['GET', 'POST'])
 def get_last():
     try:
         data = json.loads(request.data)

@@ -103,6 +103,7 @@ def db_next_info(_id=''):
         else:
             last_date = db_select_info(_id)['date']
             condition = {'date':{'$lt':last_date}}
+            print(last_date)
         find_res = collection.find(filter=condition, sort=[('date',pymongo.DESCENDING)], limit=5)
         find_res = list(find_res)
         return find_res
