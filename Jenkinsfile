@@ -15,37 +15,14 @@ pipeline {
         ]]])
       }
     }
-
+    def remoteConfig = [:]
+              remoteConfig.name = "CODING-remote-deploy"
+              remoteConfig.host = "${REMOTE_HOST}"
+              remoteConfig.user = "${REMOTE_USER_NAME}"
+              remoteConfig.password = "${REMOTE_USER_PASSWORD}"
+              remoteConfig.allowAnyHosts = true
     stage("Remote Deploy") {
-      steps {
-        script {
-          def remoteConfig = [:]
-          remoteConfig.name = "CODING-remote-deploy"
-          remoteConfig.host = "${REMOTE_HOST}"
-          remoteConfig.port = "${REMOTE_SSH_PORT}".toInteger()
-          remoteConfig.allowAnyHosts = true
-
-          withCredentials([
-            sshUserPrivateKey(
-              credentialsId: "${REMOTE_CRED}",
-              keyFileVariable: "/home/ubuntu/.ssh/id_ed25519"
-            ),
-          ]) {
-            // SSH 登录用户名
-            remoteConfig.user = "${REMOTE_USER_NAME}"
-            remoteConfig.password = "${REMOTE_USER_PASSWORD}"
-            // SSH 私钥文件地址
-            remoteConfig.identityFile = privateKeyFilePath
-
-            sshCommand(
-              remote: remoteConfig,
-              command: "bash /home/ubuntu/deploy/deploy.sh",
-              sudo: true,
-            )
-
-          }
-        }
-      }
+      sshCommand remote: remote, command: "ls"
     }
   }
 }
