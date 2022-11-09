@@ -5,6 +5,7 @@ from sockets import socketio, scheduler
 import os
 import uuid
 import time
+import datetime
 import threading
 
 socket_pool = dict() # dict - key:sid, value:socketData()
@@ -107,7 +108,8 @@ def on_receive_answer(competing_hash, result_sid_list, next_flag=False):
     scheduler.remove_job(job_id=competing_hash)
 
     answer_result = {} #TODO:（包括选手序号、正误、分数、是计时到了还是答题结束）
-    socketio.emit("answer", answer_result, to=sid, namespace="/competition")
+    socketio.emit("answer", answer_result, to=sid1, namespace="/competition")
+    socketio.emit("answer", answer_result, to=sid2, namespace="/competition")
 
     if next_flag:
         time.sleep(3)
@@ -139,7 +141,7 @@ def on_timer(competing_hash, problem_id):
             if len(competing_data.userdata[sid]['answers']) == competing_data.state:
                 competing_data.userdata[sid]['answers'].append(0) #TODO
                 result_sid_list.append(sid)
-        on_receive_answer(competing_hash, result_sid_list, next_flag)
+        on_receive_answer(competing_hash, result_sid_list, True)
 
     # release mutex lock
     competing_data.mutex.release()
@@ -163,7 +165,7 @@ def on_finish(problem_id, answer):
             score = (scheduler.get_job(job_id=competing_hash).next_run_time - datetime.datetime.now()).milliseconds
             competing_data.userdata[sid]['score'] += score
 
-        next_flag =  len(competing_data.userdata[opponent]['answers']) == competing_data.state + 1
+        next_flag =  len(competing_data.userdata[opponent_sid]['answers']) == competing_data.state + 1
         on_receive_answer(competing_hash, [sid,], next_flag)  
 
     # release mutex lock
