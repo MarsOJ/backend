@@ -3,6 +3,7 @@ flask-socketio
 simple-websocket
 flask-login
 flask-sock
+flask-apscheduler
 python-language-server[all]
 pytest
 flask-cors
