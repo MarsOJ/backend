@@ -13,3 +13,5 @@ def test_blueprint(client):
     assert b"Account Index" in response.data 
     response = client.get("/info/")
     assert b"Info Index" in response.data
+    response = client.get("/question/")
+    assert b"Question Index" in response.data
