@@ -1,5 +1,6 @@
 from flask import Blueprint, Flask, request, session, jsonify
 from views.database import *
+from views.question import *
 import json
 
 info_bp = Blueprint("info", __name__)
@@ -92,7 +93,7 @@ def insert_single_question():
     except:
         return "Bad Request", 400
 
-    if db_insert_question(title=title,classification=classification,content=content,render_mod=render_mod,
+    if db_insert_single_question(title=title,classification=classification,content=content,render_mod=render_mod,
                         answer=answer,explanation=explanation,source =source,owner=owner,
                         nSubmit=nSubmit,nAccept=nAccept,correct_rate=correct_rate,
                         tag=tag,difficultyInt=difficultyInt,
@@ -100,6 +101,55 @@ def insert_single_question():
         return "Success", 200
 
     return "Insert Error", 400
+
+@question_bp.route("/insert_big_single/", methods=['POST'])
+def insert_big_single_questions():
+    data = json.loads(request.data)
+    print('type of data',type(data))
+    data_list = data['data']
+    if db_insert_big_questions(data_list):
+        return "Success", 200
+
+    return "Insert Error", 400
+
+
+@question_bp.route("/update_single/<id>", methods=['POST'])
+def update_single_question(id):
+    data = json.loads(request.data)
+
+    try:
+        # print('enter update_single_question')
+        tmp_id = data['id']
+        title = data['title']
+        classification= data['classification']
+        content= data['content']
+        render_mod= data['render_mod']
+
+        answer= data['answer']
+        explanation= data['explanation']
+        source= data['source']
+        owner= data['owner']
+        nSubmit= data['nSubmit']
+        nAccept= data['nAccept'] 
+
+        correct_rate= data['correct_rate']
+        tag= data['tag']
+        difficultyInt= data['difficultyInt']
+        pid= data['pid']
+        hidden_mod= data['hidden_mod']
+    except:
+        return "Bad Request", 400
+
+    print('enter if')
+    if db_update_question(_id = tmp_id,title=title,classification=classification,content=content,render_mod=render_mod,
+                        answer=answer,explanation=explanation,source =source,owner=owner,
+                        nSubmit=nSubmit,nAccept=nAccept,correct_rate=correct_rate,
+                        tag=tag,difficultyInt=difficultyInt,
+                        pid=pid,hidden_mod=hidden_mod):
+        return "Success", 200
+
+    return "Insert Error", 400
+
 
 @question_bp.route("/delete/<id>", methods=['DELETE'])
 def delete_question(id,big_question_id=''):
