@@ -1,6 +1,6 @@
 from flask_socketio import SocketIO
 
-socketio = SocketIO(cors_allowed_origins="*")
+socketio = SocketIO(cors_allowed_origins="*",manage_session=False)
 from views.account import login_required
 
 

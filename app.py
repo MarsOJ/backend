@@ -14,6 +14,7 @@ app.register_blueprint(question_bp, url_prefix="/question")
 app.config["SECRET_KEY"] = "secret!qwq"
 
 socketio.init_app(app)
+# app.config['DEBUG'] = True
 
 
 CORS(app, supports_credentials=True)

@@ -39,7 +39,7 @@ def logout():
 @account_bp.route("/state/", methods=['GET'])
 def check_login_state():
     if 'username' in session:
-        return session['username'], 200
+        return session['username'], 200    
     return "Not Logged In", 400
 
 @account_bp.route("/register/", methods=['POST'])

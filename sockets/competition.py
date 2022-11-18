@@ -25,11 +25,14 @@ class socketData():
             'opponent' : socket_pool[self.opponent].username
         }
         socketio.emit("prepare", response_form, to=self.sid, namespace="/competition")
-    def problem_response(self, problem_id):
+
+    def problem_response(self, problem_id=None):
         response_form = {
-            'problemId': problem_id
+            # 'problemId': problem_id
+            'content':'test_content:{}'.format(uuid.uuid4())
         }
         # TODO: problem contents
+        print('emit problem')
         socketio.emit("problem", response_form, to=self.sid, namespace="/competition")
         
 class competingData():
@@ -45,6 +48,7 @@ class competingData():
 
 @socketio.on("connect", namespace="/competition")
 def on_connect():
+    print("receive connect")
     try:
         # if there is no waiting users
         if len(waiting_pool)== 0:
@@ -58,6 +62,7 @@ def on_connect():
             state = 1
             sid = request.sid
             data = socketData(request.sid, username, state)
+            socket_pool[sid] = data
 
             opponent_sid = waiting_pool.pop(0)
             socket_pool[opponent_sid].state = 1
@@ -66,20 +71,23 @@ def on_connect():
             socket_pool[sid].state = 1
             socket_pool[sid].opponent = opponent_sid
 
-            competing_data_hash = uuid.uuid4()
+            competing_data_hash = str(uuid.uuid4())
             competing_data = competingData(sid, opponent_sid)
             competing_pool[competing_data_hash] = competing_data
 
             socket_pool[sid].competing_hash = competing_data_hash
             socket_pool[opponent_sid].competing_hash = competing_data_hash
 
+
             socket_pool[sid].prepare_response()
             socket_pool[opponent_sid].prepare_response()
-    except:
+    except Exception as e:
+        print(e)
         pass # TODO
 
 @socketio.on("cancel", namespace="/competition")
 def on_cancel():
+    print("receive cancel")
     try:
         if request.sid in waiting_pool:
             waiting_pool.remove(request.sid)
@@ -135,7 +143,7 @@ def on_timer(competing_hash, problem_id):
     # acquire mutex lock
     competing_data.mutex.acquire()
 
-    if problem_id == competing_data.problem_id:
+    if problem_id == competing_data.problems[competing_data.state]:
         result_sid_list = []
         for sid in competing_data.userdata:
             if len(competing_data.userdata[sid]['answers']) == competing_data.state:
@@ -173,6 +181,7 @@ def on_finish(problem_id, answer):
 
 @socketio.on("start", namespace="/competition")
 def on_start():
+    print('receive start')
     try:
         sid = request.sid
         opponent_sid = socket_pool[sid].opponent
@@ -188,9 +197,9 @@ def on_start():
             competing_pool[competing_hash].state = 0
 
             # TODO: create paper
-
             scheduler.add_job(func=on_timer, args=(competing_hash, 0), id=competing_hash, trigger='interval',seconds=30, replace_existing=True, max_instances=1)
-            socket_pool[sid].prepare_response(0)
-            socket_pool[opponent_sid].prepare_response(0)
-    except:
+            socket_pool[sid].problem_response(0)
+            socket_pool[opponent_sid].problem_response(0)
+    except Exception as e:
+        print(e)
         pass
