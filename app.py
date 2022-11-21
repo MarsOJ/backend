@@ -2,7 +2,8 @@ from flask import Flask
 from flask_cors import CORS
 from views.database import database_bp
 from views.account import account_bp
-from views.info import info_bp,question_bp
+from views.info import info_bp
+from views.question import question_bp
 from sockets import socketio
 
 app = Flask(__name__)
@@ -24,4 +25,4 @@ def hello_world():
     return "<p>Hello, World!</p>"
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True,port=4999)
