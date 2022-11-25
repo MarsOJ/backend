@@ -23,9 +23,9 @@ class socketData():
         self.opponent = None # sid
         self.competing_hash = None
 
-    def prepare_response(self):
-        response_form = [socket_pool[self.opponent].username]
-        socketio.emit("prepare", response_form, to=self.sid, namespace="/competition")
+    def prepare_response(self, competitor_list):
+        # response_form = [socket_pool[self.opponent].username]
+        socketio.emit("prepare", competitor_list, to=self.sid, namespace="/competition")
 
     def problem_response(self, problem_id=None, problem=None):
         try:
@@ -44,8 +44,8 @@ class socketData():
 class competingData():
     def __init__(self, sid1, sid2):
         self.userdata = {}
-        self.userdata[sid1] = {'answer':[], 'score':0, 'score_list':[]}
-        self.userdata[sid2] = {'answer':[], 'score':0, 'score_list':[]}
+        self.userdata[sid1] = {'answer':[], 'score':0, 'score_list':[], 'alive':True}
+        self.userdata[sid2] = {'answer':[], 'score':0, 'score_list':[], 'alive':True}
         self.problems = []
         self.state = -1 # -1 for not start, >= 0 for problem_id
         self.timer = None
@@ -83,8 +83,9 @@ def on_connect():
             socket_pool[sid].competing_hash = competing_data_hash
             socket_pool[opponent_sid].competing_hash = competing_data_hash
 
-            socket_pool[sid].prepare_response()
-            socket_pool[opponent_sid].prepare_response()
+            competitor_list = [socket_pool[temp_sid].username for temp_sid in competing_data.userdata.keys()]
+            socket_pool[sid].prepare_response(competitor_list)
+            socket_pool[opponent_sid].prepare_response(competitor_list)
             print(sid)
             print(opponent_sid)
     except Exception as e:
@@ -121,6 +122,7 @@ def to_next(competing_hash):
         return
     else:
         for sid in competing_data.userdata.keys():
+
             socket_pool[sid].problem_response(competing_data.state, competing_pool[competing_hash].problems[competing_data.state])
         scheduler.add_job(func=on_timer, args=(competing_hash, competing_data.state), id=competing_hash, trigger='interval',seconds=30, replace_existing=True, max_instances=1)
 
@@ -170,7 +172,8 @@ def on_finish(problem_id, answer):
                 correct.append(False)
                 score_list.append(0)
         
-        competing_data.userdata[sid]['score_list'] = score_list
+        competing_data.userdata[sid]['score_list'].append(score_list)
+        print(competing_data.userdata[sid]['score_list'])
         # whether it's the last problem
         next_flag =  len(competing_data.userdata[opponent_sid]['answer']) == competing_data.state + 1
         
@@ -209,6 +212,7 @@ def on_start():
             competing_pool[competing_hash].problems = db_get_random_questions()
 
             scheduler.add_job(func=on_timer, args=(competing_hash, 0), id=competing_hash, trigger='interval',seconds=30, replace_existing=True, max_instances=1)
+            print("in problem response")
             socket_pool[sid].problem_response(0, competing_pool[competing_hash].problems[0])
             socket_pool[opponent_sid].problem_response(0, competing_pool[competing_hash].problems[0])
     except Exception as e:
@@ -217,12 +221,20 @@ def on_start():
 
 @socketio.on("result", namespace="/competition")
 def on_result():
-    result = {}
-    points = [[]]*len(competing_data.problems)
+    this_sid = request.sid
+    competing_hash = socket_pool[this_sid].competing_hash
+    username = socket_pool[this_sid].username
+    competing_data = competing_pool[competing_hash]
+    result = {'points':[], 'problems':[]}
+    points = [[] for _ in range(len(competing_data.problems))] 
     for sid in competing_data.userdata.keys():
         result['points'].append({'name':socket_pool[sid].username, 'points':competing_data.userdata[sid]['score']})
         for i, score_list in enumerate(competing_data.userdata[sid]['score_list']):
+            print(points)
+            print(points[1], i)
             points[i].append(score_list)
+            print(points)
+            print(points[1], i)
     for i, problem in enumerate(competing_data.problems):
         result['problems'].append({
             'num':i,
@@ -230,11 +242,21 @@ def on_result():
             'type':problem['classification'],
             'points':points[i],
         })
+    print(result['problems'])
+    # for sid in competing_data.userdata.keys():
+    socketio.emit("result", result, to=this_sid, namespace="/competition")
+    competing_data.userdata[this_sid]['alive'] = False
+    # del socket_pool[this_sid]
 
+    clear_competing_hash = True
     for sid in competing_data.userdata.keys():
-        socketio.emit("result", result, to=sid, namespace="/competition")
-        del socket_pool[sid]
-    del competing_pool[competing_hash]
+        if competing_data.userdata[sid]['alive']:
+            clear_competing_hash = False
+            break
+    if clear_competing_hash:
+        for sid in competing_data.userdata.keys():
+            del socket_pool[sid]
+        del competing_pool[competing_hash]
 
 @socketio.on("disconnect", namespace="/competition")
 def on_disconnect():
