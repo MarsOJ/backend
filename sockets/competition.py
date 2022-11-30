@@ -157,15 +157,18 @@ def on_finish(problem_id, answer):
     competing_data.mutex.acquire()
 
     opponent_sid = socket_pool[sid].opponent
+    print(answer)
     if len(competing_data.userdata[sid]['answer']) == competing_data.state:
         competing_data.userdata[sid]['answer'].append(answer)
 
         correct = []
         score_list = []
         for i in range(len(answer)):
+            print(answer)
+            print(competing_data.problems[competing_data.state]['answer'])
             if answer[i] == competing_data.problems[competing_data.state]['answer'][i]:
                 correct.append(True)
-                score = (scheduler.get_job(job_id=competing_hash).next_run_time - datetime.datetime.now()).milliseconds
+                score = (scheduler.get_job(job_id=competing_hash).next_run_time.replace(tzinfo=None) - datetime.datetime.now()).seconds + 10
                 competing_data.userdata[sid]['score'] += score
                 score_list.append(score)
             else:
