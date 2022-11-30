@@ -177,6 +177,7 @@ def on_finish(problem_id, answer):
         
         competing_data.userdata[sid]['score_list'].append(score_list)
         print(competing_data.userdata[sid]['score_list'])
+        
         # whether it's the last problem
         next_flag =  len(competing_data.userdata[opponent_sid]['answer']) == competing_data.state + 1
         

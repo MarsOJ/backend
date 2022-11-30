@@ -4,6 +4,7 @@ from views.database import database_bp
 from views.account import account_bp
 from views.info import info_bp
 from views.question import question_bp
+from views.favorite import favorite_bp
 from sockets import socketio
 
 app = Flask(__name__)
@@ -11,6 +12,7 @@ app.register_blueprint(database_bp, url_prefix="/database")
 app.register_blueprint(account_bp, url_prefix="/account")
 app.register_blueprint(info_bp, url_prefix="/info")
 app.register_blueprint(question_bp, url_prefix="/question")
+app.register_blueprint(favorite_bp, url_prefix="/favorite")
 
 app.config["SECRET_KEY"] = "secret!qwq"
 

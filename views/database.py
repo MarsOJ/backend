@@ -4,6 +4,7 @@ import pymongo
 from bson.objectid import ObjectId
 import datetime
 import random
+import uuid
 
 database_bp = Blueprint("database", __name__)
 client = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -20,7 +21,8 @@ def db_select_user(name):
         user = {
             'username':name
         }
-        return collection.find_one(user) # return dict
+        res = collection.find_one(user) # return dict
+        return res
     except Exception as e:
         print(e)
         return False
@@ -31,12 +33,85 @@ def db_insert_user(name, pw):
         collection = db["account"]
         user = {
             'username':name, 
-            'pwhash':pwhash
+            'pwhash':pwhash,
+            'favorite':[{'name':'default', 'favoriteID': '0', 'problemID':[]}],
+            'credit':0,
         }
         collection.insert_one(user)
         return True
     except:
         return False
+
+def db_insert_favorite(username, favorite_name):
+    try:
+        item = db_select_user(username)
+        collection = db["account"]
+
+        favorites = item['favorite']
+        names = [i['name'] for i in favorites]
+        if favorite_name in names:
+            return 'Repeated name', False
+        favoriteID = uuid.uuid4()
+        
+        favorites.append({
+            'name':favorite_name,
+            'favoriteID':favoriteID,
+            'problemID':[]
+        })
+        update_res = collection.update_one(user, {'$set':{'favorite':favorites}})
+        if update_res.modified_count != 1:
+            return 'Update error', False
+        return True
+    except:
+        return 'Key error', False
+
+def db_delete_favorite(username, favorite_id):
+    try:
+        item = db_select_user(username)
+        collection = db["account"]
+
+        favorites = item['favorite']
+        delete_flag = False
+        for index, favorite in enumerate(favorites):
+            if favorite['favoriteID'] == favorite_id:
+                del favorites[index]
+                delete_flag = True
+        if not delete_flag:
+            return 'Not found', False
+        delete_res = collection.delete_one(user, {'$set':{'favorite':favorites}})
+        if delete_res.deleted_count != 1:
+            return 'Update error', False
+        return True
+    except:
+        return 'Key error', False
+
+def db_rename_favorite(username, new_name, favorite_id):
+    try:
+        item = db_select_user(username)
+        collection = db["account"]
+
+        favorites = item['favorite']
+
+        rename_flag = False
+        for index, favorite in enumerate(favorites):
+            if favorite['favoriteID'] == favorite_id:
+                favorites[index]['name'] = new_name
+                rename_flag = True
+        if not rename_flag:
+            return 'Not found', False
+        update_res = collection.update_one(user, {'$set':{'favorite':favorites}})
+        if update_res.modified_count != 1:
+            return 'Update error', False
+        return True
+    except:
+        return 'Key error', False
+
+def db_select_all_favorites(username):
+    try:
+        item = db_select_user(username)
+        return item['favorite']
+    except Exception as e:
+        return e, False
 
 def db_verify_user(name, pw):
     try:
@@ -276,15 +351,15 @@ def db_delete_question(_id):
     except:
         return False
 
-def db_delete_database_all():
-    try:
-        print('enter db_delete_database_all')
-        collection = db["question"]
-        collection.drop()
+# def db_delete_database_all():
+#     try:
+#         print('enter db_delete_database_all')
+#         collection = db["question"]
+#         collection.drop()
 
-        return True
-    except:
-        return False
+#         return True
+#     except:
+#         return False
 
 
 def db_update_question(_id='', title='',classification=0,content='',subproblem=[],
@@ -340,7 +415,7 @@ difficulty_correct_rate_condition_dic: 根据难题模式/易错题模式
 }
 '''
 
-def db_get_random_questions(required_amount_dic={'0':3, '1':0},difficulty_correct_rate_condition_dic={}):
+def db_get_random_questions(required_amount_dic={'0':3, '1':1}, difficulty_correct_rate_condition_dic={}):
     try:
         collection = db["question"] 
         questions = []
@@ -388,4 +463,4 @@ def db_get_random_questions(required_amount_dic={'0':3, '1':0},difficulty_correc
         print('len(questions)',len(questions))
         return questions
     except Exception as e:
-        return False       
+        return False
