@@ -34,7 +34,7 @@ def db_insert_user(name, pw):
         user = {
             'username':name, 
             'pwhash':pwhash,
-            'favorite':[{'name':'default', 'favoriteID': '0', 'problemID':[]}],
+            'favorite':{'0':{'name':'default', 'problemID':[]}},
             'credit':0,
         }
         collection.insert_one(user)
@@ -45,23 +45,116 @@ def db_insert_user(name, pw):
 def db_insert_favorite(username, favorite_name):
     try:
         item = db_select_user(username)
-        collection = db["account"]
 
         favorites = item['favorite']
-        names = [i['name'] for i in favorites]
+        names = [v['name'] for k,v in favorites]
         if favorite_name in names:
             return 'Repeated name', False
         favoriteID = uuid.uuid4()
         
-        favorites.append({
+        favorites[favoriteID]({
             'name':favorite_name,
-            'favoriteID':favoriteID,
             'problemID':[]
         })
-        update_res = collection.update_one(user, {'$set':{'favorite':favorites}})
+
+        collection = db["account"]
+        update_res = collection.update_one({'username':username}, {'$set':{'favorite':favorites}})
         if update_res.modified_count != 1:
             return 'Update error', False
         return True
+    except:
+        return 'Key error', False
+
+def db_insert_favorite_problem(username, favorite_id, problem_id):
+    try:
+        item = db_select_user(username)
+        collection = db["account"]
+
+        favorites = item['favorite']
+        fav = favorites[favorite_id]
+        problem_set = fav['problemID']
+        success_num = 0
+        noexist_num = 0
+        failed_num = 0
+        add_items = []
+        for problem in problem_id:
+            # check if problem in favorites
+            if problem not in problem_set:
+                noexist_num += 1
+            # check if in dataset
+            elif not db_select_questions(_id=problem):
+                failed_num += 1
+            else:
+                problem_set.remove(problem)
+                success_num += 1
+
+        update_res = collection.update_one({'username':username}, {'$set':{'favorite':favorites}})
+        if update_res.modified_count != 1:
+            failed_num += success_num
+            success_num = 0
+        return (success_num, noexist_num, failed_num), True
+    except:
+        return 'Key error', False
+
+def db_move_favorite_problem(username, problem_id, dest_id, source_id):
+    try:
+        item = db_select_user(username)
+        collection = db["account"]
+
+        favorites = item['favorite']
+        dest_fav = favorites[dest_id]
+        source_fav = favorites[source_id]
+        dest_problem = dest_fav['problemID']
+        source_problem = source_fav['problemID']
+
+        success_num = 0
+        failed_num = 0
+        for problem in problem_id:
+            # check if problem in favorites
+            if problem not in source_problem or problem in dest_problem:
+                failed_num += 1
+            else:
+                dest_problem.append(problem)
+                source_problem.remove(problem)
+                success_num += 1
+
+        update_res = collection.update_one({'username':username}, {'$set':{'favorite':favorites}})
+        if update_res.modified_count != 1:
+            failed_num += success_num
+            success_num = 0
+        return (success_num, failed_num), True
+    except:
+        return 'Key error', False
+
+def db_delete_favorite_problem(username, favorite_id, problem_id):
+    try:
+        item = db_select_user(username)
+        collection = db["account"]
+
+        favorites = item['favorite']
+        fav = favorites[favorite_id]
+        problem_set = fav['problemID']
+        success_num = 0
+        failed_num = 0
+        repeated_num = 0
+        add_items = []
+        for problem in problem_id:
+            # check if problem in favorites
+            if problem in problem_set:
+                repeated_num += 1
+            # check if in dataset
+            elif not db_select_questions(_id=problem):
+                failed_num += 1
+            else:
+                add_items.append(problem)
+
+        problem_set.extend(add_items)
+        update_res = collection.update_one({'username':username}, {'$set':{'favorite':favorites}})
+        if update_res.modified_count != 1:
+            failed_num += len(add_items)
+        else:
+            success_num = len(add_items)
+        return (success_num, repeated_num, failed_num), True
     except:
         return 'Key error', False
 
@@ -71,14 +164,9 @@ def db_delete_favorite(username, favorite_id):
         collection = db["account"]
 
         favorites = item['favorite']
-        delete_flag = False
-        for index, favorite in enumerate(favorites):
-            if favorite['favoriteID'] == favorite_id:
-                del favorites[index]
-                delete_flag = True
-        if not delete_flag:
-            return 'Not found', False
-        delete_res = collection.delete_one(user, {'$set':{'favorite':favorites}})
+        del favorites[favorite_id]
+
+        delete_res = collection.update_one({'username':username}, {'$set':{'favorite':favorites}})
         if delete_res.deleted_count != 1:
             return 'Update error', False
         return True
@@ -91,15 +179,10 @@ def db_rename_favorite(username, new_name, favorite_id):
         collection = db["account"]
 
         favorites = item['favorite']
+        fav = favorites[favorite_id]
+        fav['name'] = new_name
 
-        rename_flag = False
-        for index, favorite in enumerate(favorites):
-            if favorite['favoriteID'] == favorite_id:
-                favorites[index]['name'] = new_name
-                rename_flag = True
-        if not rename_flag:
-            return 'Not found', False
-        update_res = collection.update_one(user, {'$set':{'favorite':favorites}})
+        update_res = collection.update_one({'username':username}, {'$set':{'favorite':favorites}})
         if update_res.modified_count != 1:
             return 'Update error', False
         return True
