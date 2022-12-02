@@ -158,6 +158,18 @@ def db_delete_favorite_problem(username, favorite_id, problem_id):
     except:
         return 'Key error', False
 
+def db_select_favorite_problem(username, favorite_id):
+    try:
+        item = db_select_user(username)
+        collection = db["account"]
+
+        favorites = item['favorite']
+        fav = favorites[favorite_id]
+        problem_set = fav['problemID']
+        return problem_set, True
+    except:
+        return 'Key error', False
+
 def db_delete_favorite(username, favorite_id):
     try:
         item = db_select_user(username)
@@ -348,7 +360,7 @@ def db_select_questions(_id='',title='',classification=[],source='',owner='',
                         tag=[],difficultyInt=-1,submit_date='',last_modified_date='',
                         nSubmit = -1,nAccept=-1,correct_rate =-1):
     try:
-        collection = db["quesion"]
+        collection = db["question"]
         condition = {}
         if _id !='':
             condition['_id'] = ObjectId(_id)

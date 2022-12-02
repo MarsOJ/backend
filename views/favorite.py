@@ -63,7 +63,7 @@ def favorite_list():
                     'name': v['name'],
                     'default': v['favoriteID'] == '0',
                 })
-            return res, 200
+            return json.dumps(res), 200
         except Exception as e:
             return e, 400
             print(e)
@@ -114,18 +114,29 @@ def favorite_problem():
             return e, 400
             print(e)
 
-    # elif (request.method == 'GET'):
-    #     try:
-    #         username = session['username']
-    #         select_res = db_select_all_favorites(username=username)
-    #         res = []
-    #         for fav in select_res:
-    #             res.append({
-    #                 'id': fav['favoriteID'],
-    #                 'name': fav['name'],
-    #                 'default': fav['favoriteID'] == '0',
-    #             })
-    #         return res, 200
-    #     except Exception as e:
-    #         return e, 400
-    #         print(e)
+    elif (request.method == 'GET'):
+        try:
+            username = session['username']
+            page = int(request.args.get('page'))
+            itemPerPage = int(request.args.get('itemPerPage'))
+            favoriteID = request.args.get('favoriteID', None)
+            if not favoriteID:
+                favoriteID = '0'
+
+            select_res, state = db_select_favorite_problem(username=username, favorite_id=favoriteID)
+            if not state:
+                raise('database error')
+
+            ret = []
+            for pid in select_res[(page - 1) * itemPerPage : page * itemPerPage]:
+                problem = db_select_questions(_id=pid)[0]
+                ret.append({
+                    'id':problem['_id'],
+                    'content':problem['content'][:20],
+                    'type':problem['classification'],
+                    'date':"2022/12/03",
+                })
+            return json.dumps(ret), 200
+        except Exception as e:
+            return e, 400
+            print(e)
