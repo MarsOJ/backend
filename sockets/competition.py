@@ -103,28 +103,34 @@ def on_cancel():
     except:
         pass
 
+def to_problem(competing_hash):
+    competing_data = competing_pool[competing_hash]
+    competing_data.mutex.acquire()
+    for sid in competing_data.userdata.keys():
+            socket_pool[sid].problem_response(competing_data.state, competing_pool[competing_hash].problems[competing_data.state])
+    scheduler.add_job(func=on_timer, args=(competing_hash, competing_data.state), id=competing_hash, trigger='interval',seconds=30, replace_existing=True, max_instances=1)
+
+    competing_data.mutex.release()
+
 def to_next(competing_hash):
     scheduler.remove_job(job_id=competing_hash)
     competing_data = competing_pool[competing_hash]
     competing_data.state += 1
     
-
     lastQuestion = competing_data.state >= len(competing_data.problems) 
     next_data = {
             'answer':competing_data.problems[competing_data.state - 1]['answer'],
             'lastQuestion':lastQuestion,
         }
-
     for sid in competing_data.userdata.keys():
         socketio.emit("next", next_data, to=sid, namespace="/competition")
-
+    
     if lastQuestion:
         return
     else:
-        for sid in competing_data.userdata.keys():
-
-            socket_pool[sid].problem_response(competing_data.state, competing_pool[competing_hash].problems[competing_data.state])
-        scheduler.add_job(func=on_timer, args=(competing_hash, competing_data.state), id=competing_hash, trigger='interval',seconds=30, replace_existing=True, max_instances=1)
+        s = threading.Timer(3, to_problem, (competing_hash))
+        s.start()
+        
 
 def on_timer(competing_hash, problem_id):
     competing_data = competing_pool[competing_hash]
@@ -157,7 +163,6 @@ def on_finish(problem_id, answer):
     competing_data.mutex.acquire()
 
     opponent_sid = socket_pool[sid].opponent
-    print(answer)
     if len(competing_data.userdata[sid]['answer']) == competing_data.state:
         competing_data.userdata[sid]['answer'].append(answer)
 
@@ -179,6 +184,7 @@ def on_finish(problem_id, answer):
         print(competing_data.userdata[sid]['score_list'])
         
         # whether it's the last problem
+        # print(competing_data.userdata[opponent_sid]['answer'], competing_data.state)
         next_flag =  len(competing_data.userdata[opponent_sid]['answer']) == competing_data.state + 1
         
         ret_form = {
@@ -234,11 +240,11 @@ def on_result():
     for sid in competing_data.userdata.keys():
         result['points'].append({'name':socket_pool[sid].username, 'points':competing_data.userdata[sid]['score']})
         for i, score_list in enumerate(competing_data.userdata[sid]['score_list']):
-            print(points)
-            print(points[1], i)
+            # print(points)
+            # print(points[1], i)
             points[i].append(score_list)
-            print(points)
-            print(points[1], i)
+            # print(points)
+            # print(points[1], i)
     for i, problem in enumerate(competing_data.problems):
         result['problems'].append({
             'num':i,

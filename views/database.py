@@ -45,27 +45,26 @@ def db_insert_user(name, pw):
 def db_insert_favorite(username, favorite_name):
     try:
         item = db_select_user(username)
-
         favorites = item['favorite']
-        names = [v['name'] for k,v in favorites]
+        names = [v['name'] for k,v in favorites.items()]
         if favorite_name in names:
             return 'Repeated name', False
-        favoriteID = uuid.uuid4()
+        favoriteID = str(uuid.uuid4())
         
-        favorites[favoriteID]({
+        favorites[favoriteID] = ({
             'name':favorite_name,
             'problemID':[]
         })
-
+        
         collection = db["account"]
         update_res = collection.update_one({'username':username}, {'$set':{'favorite':favorites}})
         if update_res.modified_count != 1:
             return 'Update error', False
-        return True
-    except:
-        return 'Key error', False
+        return 'success', True
+    except Exception as e:
+        return e, False
 
-def db_insert_favorite_problem(username, favorite_id, problem_id):
+def db_delete_favorite_problem(username, favorite_id, problem_id):
     try:
         item = db_select_user(username)
         collection = db["account"]
@@ -78,6 +77,7 @@ def db_insert_favorite_problem(username, favorite_id, problem_id):
         failed_num = 0
         add_items = []
         for problem in problem_id:
+            print(problem)
             # check if problem in favorites
             if problem not in problem_set:
                 noexist_num += 1
@@ -87,14 +87,13 @@ def db_insert_favorite_problem(username, favorite_id, problem_id):
             else:
                 problem_set.remove(problem)
                 success_num += 1
-
         update_res = collection.update_one({'username':username}, {'$set':{'favorite':favorites}})
         if update_res.modified_count != 1:
             failed_num += success_num
             success_num = 0
         return (success_num, noexist_num, failed_num), True
-    except:
-        return 'Key error', False
+    except Exception as e:
+        return e, False
 
 def db_move_favorite_problem(username, problem_id, dest_id, source_id):
     try:
@@ -126,7 +125,7 @@ def db_move_favorite_problem(username, problem_id, dest_id, source_id):
     except:
         return 'Key error', False
 
-def db_delete_favorite_problem(username, favorite_id, problem_id):
+def db_insert_favorite_problem(username, favorite_id, problem_id):
     try:
         item = db_select_user(username)
         collection = db["account"]
@@ -204,7 +203,7 @@ def db_rename_favorite(username, new_name, favorite_id):
 def db_select_all_favorites(username):
     try:
         item = db_select_user(username)
-        return item['favorite']
+        return item['favorite'], True
     except Exception as e:
         return e, False
 
@@ -510,7 +509,7 @@ difficulty_correct_rate_condition_dic: 根据难题模式/易错题模式
 }
 '''
 
-def db_get_random_questions(required_amount_dic={'0':3, '1':1}, difficulty_correct_rate_condition_dic={}):
+def db_get_random_questions(required_amount_dic={'0':1, '1':0}, difficulty_correct_rate_condition_dic={}):
     try:
         collection = db["question"] 
         questions = []

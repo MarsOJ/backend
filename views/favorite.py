@@ -16,12 +16,15 @@ def favorite_list():
         try:
             username = session['username']
             name = data['name']
+            print(name)
             _, state = db_insert_favorite(username=username, favorite_name=name)
+            print(_)
             if state:
                 return 'success', 200
             return _, 400
         except Exception as e:
             print(e)
+            return e,400
     elif (request.method == 'DELETE'):
         data = json.loads(request.data)
         try:
@@ -35,6 +38,7 @@ def favorite_list():
             return _, 400
         except Exception as e:
             print(e)
+            return e,400
 
     elif (request.method == 'PUT'):
         data = json.loads(request.data)
@@ -49,24 +53,26 @@ def favorite_list():
                 return 'success', 200
             return _, 400
         except Exception as e:
-            return e, 400
             print(e)
+            return e, 400
 
     elif (request.method == 'GET'):
         try:
             username = session['username']
-            select_res = db_select_all_favorites(username=username)
+            select_res, state = db_select_all_favorites(username=username)
+            # print(select_res)
             res = []
-            for k, v in select_res:
+            for k, v in select_res.items():
                 res.append({
                     'id': k,
                     'name': v['name'],
-                    'default': v['favoriteID'] == '0',
+                    'default': True if k == '0' else False,
                 })
+            # print(res)
             return json.dumps(res), 200
         except Exception as e:
-            return e, 400
             print(e)
+            return e, 400
 
 @favorite_bp.route("/problem/", methods=['POST', 'DELETE', 'PUT', 'GET'])
 def favorite_problem():
@@ -77,25 +83,27 @@ def favorite_problem():
             favoriteID = data['destID']
             problemID = data['problemID']
             _, state = db_insert_favorite_problem(username=username, favorite_id=favoriteID, problem_id=problemID)
+            print(_)
             if state:
                 return json.dumps(list(_)), 200
             return _, 400
         except Exception as e:
             print(e)
+            return e, 400
     elif (request.method == 'DELETE'):
         data = json.loads(request.data)
         try:
             username = session['username']
-            favoriteID = data['destID']
+            favoriteID = data['sourceID']
             problemID = data['problemID']
-            if favoriteID == '0':
-                return 'Default cannot be removed', 400
-            _, state = db_delete_favorite_problem(username=username, favorite_id=favoriteID)
+            _, state = db_delete_favorite_problem(username=username, favorite_id=favoriteID, problem_id=problemID)
+            print(_)
             if state:
                 return json.dumps(list(_)), 200
             return _, 400
         except Exception as e:
             print(e)
+            return e, 400
 
     elif (request.method == 'PUT'):
         data = json.loads(request.data)
@@ -111,15 +119,15 @@ def favorite_problem():
                 return json.dumps(list(_)), 200
             return _, 400
         except Exception as e:
-            return e, 400
             print(e)
+            return e, 400
 
     elif (request.method == 'GET'):
         try:
             username = session['username']
-            page = int(request.args.get('page'))
+            page = int(request.args.get('p'))
             itemPerPage = int(request.args.get('itemPerPage'))
-            favoriteID = request.args.get('favoriteID', None)
+            favoriteID = request.args.get('id', None)
             if not favoriteID:
                 favoriteID = '0'
 
@@ -131,12 +139,14 @@ def favorite_problem():
             for pid in select_res[(page - 1) * itemPerPage : page * itemPerPage]:
                 problem = db_select_questions(_id=pid)[0]
                 ret.append({
-                    'id':problem['_id'],
+                    'id':str(problem['_id']),
+                    'title':'',
                     'content':problem['content'][:20],
                     'type':problem['classification'],
                     'date':"2022/12/03",
                 })
+            print('ret',ret)
             return json.dumps(ret), 200
         except Exception as e:
-            return e, 400
             print(e)
+            return e, 400

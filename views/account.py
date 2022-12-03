@@ -28,7 +28,7 @@ def login():
         return "Bad Request", 400
     if db_verify_user(username, password):
         session['username'] = username
-        return "success", 200
+        return username, 200
     return "Username/Password Error", 400
 
 @account_bp.route("/logout/", methods=['POST'])
