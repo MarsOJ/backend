@@ -15,6 +15,34 @@ db = client["MarsOJ"]
 def database_index():
     return "Database Index"
 
+def db_competition_settlement_user(username, credit, correctAnswersNum, totalAnswersNum, victoriesNum):
+    try:
+        collection = db["account"]
+        select_res = db_select_user(username)
+        select_res['credit'] += credit
+        select_res['correctAnswersNum'] += correctAnswersNum
+        select_res['totalAnswersNum'] += totalAnswersNum
+        select_res['victoriesNum'] += victoriesNum
+        select_res['totalCompetitionsNum'] += 1
+        update_res = collection.update_one({'username':username}, {'$set':{select_res}})
+        if update_res.modified_count != 1:
+            return 'Update error', False
+        return 'success', True
+    except Exception as e:
+        return e, False
+
+def db_competition_settlement_result(problemID, userResult):
+    try:
+        collection = db["competition"]
+        insert_content = {
+            'problemID':problemID,
+            'userResult':userResult, # [{'username':, 'correctness':[], 'score':[]}, ...]
+        }
+        collection.insert_one(insert_content)
+        return 'success', True
+    except Exception as e:
+        return e, False
+
 def db_select_user(name):
     try:
         collection = db["account"]

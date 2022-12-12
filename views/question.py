@@ -48,7 +48,6 @@ def insert_single_question():
                         tag=tag,difficultyInt=difficultyInt,
                         hidden_mod=hidden_mod):
         return "Success", 200
-
     return "Insert Error", 400
 
 # @question_bp.route("/insert_big_single/", methods=['POST'])

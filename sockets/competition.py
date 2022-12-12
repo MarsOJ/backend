@@ -2,6 +2,7 @@ from sockets import socketio
 from flask import request, session, jsonify
 from views.account import login_required
 from sockets import socketio, scheduler
+from functools import reduce
 import os
 import uuid
 import time
@@ -108,7 +109,7 @@ def to_problem(competing_hash):
     global waiting_pool, socket_pool, competing_pool
     competing_data = competing_pool[competing_hash]
     competing_data.mutex.acquire()
-    for sid in competing_data.userdata.keys():
+    for sid in competing_data.sidlist:
             socket_pool[sid].problem_response(competing_data.state, competing_pool[competing_hash].problems[competing_data.state])
     scheduler.add_job(func=on_timer, args=(competing_hash, competing_data.state), id=competing_hash, trigger='interval',seconds=30, replace_existing=True, max_instances=1)
 
@@ -125,7 +126,7 @@ def to_next(competing_hash):
             'answer':competing_data.problems[competing_data.state - 1]['answer'],
             'lastQuestion':lastQuestion,
         }
-    for sid in competing_data.userdata.keys():
+    for sid in competing_data.sidlist:
         socketio.emit("next", next_data, to=sid, namespace="/competition")
     
     if lastQuestion:
@@ -144,7 +145,7 @@ def on_timer(competing_hash, problem_id):
     print(len(competing_data.problems))
     if problem_id == competing_data.state and problem_id < len(competing_data.problems):
         result_sid_list = []
-        for sid in competing_data.userdata.keys():
+        for sid in competing_data.sidlist:
             if len(competing_data.userdata[sid]['answer']) == competing_data.state:
                 competing_data.userdata[sid]['answer'].append([False]*len(competing_data.problems[problem_id]['answer']))
                 competing_data.userdata[sid]['score_list'].append([0]*len(competing_data.problems[problem_id]['answer']))
@@ -198,7 +199,7 @@ def on_finish(problem_id, answer):
             'correct':correct,
             'score':competing_data.userdata[sid]['score'],
         }
-        for sid in competing_data.userdata.keys():
+        for sid in competing_data.sidlist:
             socketio.emit("answer", ret_form, to=sid, namespace="/competition")    
 
         if next_flag:
@@ -248,6 +249,32 @@ def on_start():
     if (competing_data): 
         competing_data.mutex.release()
 
+def settlement(username_list, points, problem_set):
+    scores = [[] for _ in range(username_list)] # scores[i][j] means player i got how much scores in problem j
+    correctness = [[] for _ in range(username_list)]
+    for point in points:
+        for idx in range(len(username_list)):
+            scores.append(sum(point[idx]))
+            correctness.append(reduce(lambda x, y : x and y, list(map(lambda x : x > 0, point[idx]))))
+    # scores_sum = list(map(lambda x:sum(x), scores))
+    # correctness_sum = list(map(lambda x:sum(x), correctness))
+    total_problems = len(points)
+
+    ranklist = [{'username':username_list[i], 'correctness':correctness_sum[i], 'score':scores_sum[i]} for i in range(username_list)]
+
+    sort(ranklist, lambda x:sum(x['score']), reverse=True)
+
+    for idx, rank in enumerate(ranklist):
+        username = rank['username']
+        credit = len(ranklist) - rank
+        correctAnswersNum = sum(rank['correctness'])
+        totalAnswersNum = total_problems
+        victoriesNum = 1 if idx == 1 else 0
+        db_competition_settlement_user(username, credit, correctAnswersNum, totalAnswersNum, victoriesNum)
+    
+    db_competition_settlement_result(problem_set ,ranklist)
+
+
 @socketio.on("result", namespace="/competition")
 def on_result():
     global waiting_pool, socket_pool, competing_pool
@@ -257,14 +284,10 @@ def on_result():
     competing_data = competing_pool[competing_hash]
     result = {'points':[], 'problems':[]}
     points = [[] for _ in range(len(competing_data.problems))] 
-    for sid in competing_data.userdata.keys():
+    for sid in competing_data.sidlist:
         result['points'].append({'name':socket_pool[sid].username, 'points':competing_data.userdata[sid]['score']})
         for i, score_list in enumerate(competing_data.userdata[sid]['score_list']):
-            # print(points)
-            # print(points[1], i)
             points[i].append(score_list)
-            # print(points)
-            # print(points[1], i)
     for i, problem in enumerate(competing_data.problems):
         result['problems'].append({
             'num':i,
@@ -273,18 +296,18 @@ def on_result():
             'points':points[i],
         })
     print(result['problems'])
-    # for sid in competing_data.userdata.keys():
     socketio.emit("result", result, to=this_sid, namespace="/competition")
     competing_data.userdata[this_sid]['alive'] = False
-    # del socket_pool[this_sid]
 
     clear_competing_hash = True
-    for sid in competing_data.userdata.keys():
+    for sid in competing_data.sidlist:
         if competing_data.userdata[sid]['alive']:
             clear_competing_hash = False
             break
     if clear_competing_hash:
-        for sid in competing_data.userdata.keys():
+        username_list = [socket_pool[sid].username for sid in competing_data.sidlist]
+        settlement(username_list, points, competing_data.problems)
+        for sid in competing_data.sidlist:
             del socket_pool[sid]
         del competing_pool[competing_hash]
 
