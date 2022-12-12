@@ -27,20 +27,62 @@ def db_select_user(name):
         print(e)
         return False
 
+def db_select_userinfo(name):
+    try:
+        info = db_select_userinfo(name)
+        return info
+    except Exception as e:
+        print(e)
+        return False
+
 def db_insert_user(name, pw):
     try:
         pwhash = generate_password_hash('NAME:'+name+'|PW:'+pw, method='pbkdf2:sha256', salt_length=8)
         collection = db["account"]
         user = {
-            'username':name, 
-            'pwhash':pwhash,
-            'favorite':{'0':{'name':'default', 'problemID':[]}},
-            'credit':0,
+            'username': name, 
+            'pwhash': pwhash,
+            'favorite': {'0':{'name':'default', 'problemID':[]}},
+            'credit': 0,
+            'profile': '',
+            'authority': False,
+            'totalAnswersNum': 0,
+            'correctAnswersNum': 0,
+            'totalCompetitionsNum': 0,
+            'victoriesNum': 0,
+            'signature':'',
         }
         collection.insert_one(user)
         return True
     except:
         return False
+
+def db_update_signature(name, signature):
+    try:
+        collection = db["account"]
+        update_res = collection.update_one({'username':username}, {'$set':{'signature':signature}})
+        if update_res.modified_count != 1:
+            return 'Update error', False
+        return 'success', True
+    except Exception as e:
+        return e, False
+
+def db_update_profile(name, newProfile):
+    try:
+        collection = db["account"]
+        update_res = collection.update_one({'username':username}, {'$set':{'profile':newProfile}})
+        if update_res.modified_count != 1:
+            return 'Update error', False
+        return 'success', True
+    except Exception as e:
+        return e, False
+
+def db_select_profile(name):
+    try:
+        item = db_select_user(name)
+        return item['profile'], True
+    except:
+        return 'Key error', False
 
 def db_insert_favorite(username, favorite_name):
     try:
@@ -509,7 +551,7 @@ difficulty_correct_rate_condition_dic: 根据难题模式/易错题模式
 }
 '''
 
-def db_get_random_questions(required_amount_dic={'0':1, '1':0}, difficulty_correct_rate_condition_dic={}):
+def db_get_random_questions(required_amount_dic={'0':3, '1':1}, difficulty_correct_rate_condition_dic={}):
     try:
         collection = db["question"] 
         questions = []

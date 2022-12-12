@@ -63,7 +63,7 @@ def register():
 def delete():
     try:
         data = json.loads(request.data)
-        username = data['username']
+        username = session['username']
         password = data['password']
         if not db_verify_user(username, password):
             return "Username/Password Error", 400
@@ -78,7 +78,7 @@ def delete():
 def change_password():
     try:
         data = json.loads(request.data)
-        username = data['username']
+        username = session['username']
         password = data['password']
         newpw = data['newPassword']
         
@@ -89,3 +89,51 @@ def change_password():
         return "Success", 200
     except:
         return "Bad Request", 400
+
+
+@account_bp.route("/info/", methods=['GET'])
+@login_required
+def get_info():
+    try:
+        username = session['username']
+        info = db_select_user(username)
+        if not info:
+            raise('Database Error')
+        return info, 200
+    except Exception as e:
+        return e, 400
+
+@account_bp.route("/profile/", methods=['GET', 'POST'])
+@login_required
+def profile():
+    try:
+        name = session['username']
+        if (request.method == 'POST'):
+            data = json.loads(request.data)
+            profile = data['profile']
+            _, state = db_update_profile(name, profile)
+            if not state:
+                return "Database Error", 400
+            return "Success", 200
+        else:
+            _, state = db_select_profile(name)
+            if not state:
+                return "Database Error", 400
+            return _, 200
+    except Exception as e:
+        return e, 400
+
+@account_bp.route("/signature/", methods=['POST'])
+@login_required
+def signature():
+    try:
+        name = session['username']
+        data = json.loads(request.data)
+        signature = data['signature']
+        _, state = db_update_profile(name, signature)
+        if not state:
+            return "Database Error", 400
+        return "Success", 200
+       
+    except Exception as e:
+        return e, 400
