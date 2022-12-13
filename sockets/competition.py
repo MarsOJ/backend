@@ -250,29 +250,28 @@ def on_start():
         competing_data.mutex.release()
 
 def settlement(username_list, points, problem_set):
-    scores = [[] for _ in range(username_list)] # scores[i][j] means player i got how much scores in problem j
-    correctness = [[] for _ in range(username_list)]
+    scores = [[] for _ in range(len(username_list))] # scores[i][j] means player i got how much scores in problem j
+    correctness = [[] for _ in range(len(username_list))]
     for point in points:
         for idx in range(len(username_list)):
             scores.append(sum(point[idx]))
             correctness.append(reduce(lambda x, y : x and y, list(map(lambda x : x > 0, point[idx]))))
-    # scores_sum = list(map(lambda x:sum(x), scores))
-    # correctness_sum = list(map(lambda x:sum(x), correctness))
     total_problems = len(points)
 
-    ranklist = [{'username':username_list[i], 'correctness':correctness_sum[i], 'score':scores_sum[i]} for i in range(username_list)]
+    ranklist = [{'username':username_list[i], 'correctness':correctness[i], 'score':scores[i]} for i in range(len(username_list))]
 
-    sort(ranklist, lambda x:sum(x['score']), reverse=True)
+    ranklist.sort(key=lambda x:sum(x['score']), reverse=True)
 
     for idx, rank in enumerate(ranklist):
         username = rank['username']
-        credit = len(ranklist) - rank
+        credit = len(ranklist) - idx
         correctAnswersNum = sum(rank['correctness'])
         totalAnswersNum = total_problems
         victoriesNum = 1 if idx == 1 else 0
         db_competition_settlement_user(username, credit, correctAnswersNum, totalAnswersNum, victoriesNum)
     
-    db_competition_settlement_result(problem_set ,ranklist)
+    problem_id = [str(problem['_id']) for problem in problem_set]
+    db_competition_settlement_result(problem_id ,ranklist)
 
 
 @socketio.on("result", namespace="/competition")

@@ -67,17 +67,27 @@ def db_next_record(username='', _id=''):
 
         find_res = collection.find(filter=condition, sort=[('date',pymongo.DESCENDING)], limit=5)
         find_res = list(find_res)
-        return 'success', True
+        return find_res, True
     except Exception as e:
         return e, False
 
+def db_ranklist():
+    try:
+        collection = db["account"]
+        find_res = collection.find(filter={}, sort=[('credit',pymongo.DESCENDING)], limit=10)
+        find_res = list(find_res)
+        return find_res, True
+    except Exception as e:
+        return e, False  
+
 def db_select_user(name):
     try:
-        collection = db["record"]
+        collection = db["account"]
         user = {
             'username':name
         }
         res = collection.find_one(user) # return dict
+        del res['_id']
         return res
     except Exception as e:
         print(e)
@@ -222,6 +232,7 @@ def db_move_favorite_problem(username, problem_id, dest_id, source_id, delete_ta
             success_num = 0
         return (success_num, failed_num), True
     except:
+        print('errror')
         return 'Key error', False
 
 def db_insert_favorite_problem(username, favorite_id, problem_id):

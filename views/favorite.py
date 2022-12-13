@@ -113,9 +113,10 @@ def favorite_problem():
             sourceID = data['sourceID']
             problemID = data['problemID']
             deleteOrNot = data['delete']
-            if favoriteID == '0':
-                return 'Default cannot be renamed', 400
+            if destID == problemID:
+                return 'Destination cannot be equal to source', 400
             _, state = db_move_favorite_problem(username=username,  problem_id=problemID, dest_id=destID, source_id=sourceID, delete_tag = deleteOrNot)
+            print(_)
             if state:
                 return json.dumps(list(_)), 200
             return _, 400

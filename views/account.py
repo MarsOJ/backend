@@ -26,6 +26,7 @@ def login():
         password = data['password']
     except:
         return "Bad Request", 400
+    print(username, password)
     if db_verify_user(username, password):
         session['username'] = username
         return username, 200
@@ -97,9 +98,10 @@ def get_info():
     try:
         username = session['username']
         info = db_select_user(username)
+        del info['pwhash']
         if not info:
             raise('Database Error')
-        return info, 200
+        return json.dumps(info), 200
     except Exception as e:
         return e, 400
 
@@ -130,7 +132,7 @@ def signature():
         name = session['username']
         data = json.loads(request.data)
         signature = data['signature']
-        _, state = db_update_profile(name, signature)
+        _, state = db_update_signature(name, signature)
         if not state:
             return "Database Error", 400
         return "Success", 200
