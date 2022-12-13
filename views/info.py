@@ -100,3 +100,15 @@ def get_list():
     except Exception as e:
         print(e)
         return e, 400
+
+@info_bp.route("/count/", methods=['GET'])
+def info_count():
+    try:
+        select_res, state = db_count_info()
+        print(select_res, type(select_res))
+        if not state:
+            raise('database error')
+        return json.dumps({'count':select_res}), 200
+    except Exception as e:
+        print(e)
+        return e, 400

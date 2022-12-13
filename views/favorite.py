@@ -67,6 +67,7 @@ def favorite_list():
                     'id': k,
                     'name': v['name'],
                     'default': True if k == '0' else False,
+                    'problemNum':len(v['problemID']),
                 })
             # print(res)
             return json.dumps(res), 200
@@ -147,7 +148,6 @@ def favorite_problem():
                     # TODO:
                     'date':"2022/12/03",
                 })
-            # print('ret',ret)
             return json.dumps(ret), 200
         except Exception as e:
             print(e)

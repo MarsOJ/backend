@@ -116,3 +116,15 @@ def problem_list():
     except Exception as e:
         print(e)
         return e, 400
+
+@authority_required
+@question_bp.route("/count/", methods=['GET'])
+def problem_count():
+    try:
+        select_res, state = db_count_problem()
+        if not state:
+            raise('database error')
+        return json.dumps({'count':select_res}), 200
+    except Exception as e:
+        print(e)
+        return e, 400

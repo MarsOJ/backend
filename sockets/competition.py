@@ -261,17 +261,20 @@ def settlement(username_list, points, problem_set):
     ranklist = [{'username':username_list[i], 'correctness':correctness[i], 'score':scores[i]} for i in range(len(username_list))]
 
     ranklist.sort(key=lambda x:sum(x['score']), reverse=True)
+    credit = len(ranklist) - 1
     for idx, rank in enumerate(ranklist):
         username = rank['username']
-        credit = len(ranklist) - idx - 1
+        if (idx == 0 or sum(rank['score']) == sum(ranklist[idx - 1]['score'])):
+            pass
+        else:
+            credit = len(ranklist) - idx - 1
         correctAnswersNum = sum(rank['correctness'])
         totalAnswersNum = total_problems
-        victoriesNum = 1 if idx == 1 else 0
+        victoriesNum = 1 if credit == len(ranklist) - 1 else 0
         db_competition_settlement_user(username, credit, correctAnswersNum, totalAnswersNum, victoriesNum)
     
     problem_id = [str(problem['_id']) for problem in problem_set]
     db_competition_settlement_result(problem_id ,ranklist)
-
 
 @socketio.on("result", namespace="/competition")
 def on_result():

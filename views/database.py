@@ -64,12 +64,40 @@ def db_next_record(username='', _id=''):
         if username != '':
             condition['userList'] = { '$all': [username]}
         if _id != '':
-            # last_date = db_select_record(_id)['date']
-            # condition['date'] = {'$lt':last_date}
             condition['_id'] = {'$lt':ObjectId(_id)}
 
         find_res = collection.find(filter=condition, sort=[('_id',pymongo.DESCENDING)], limit=5)
         find_res = list(find_res)
+        return find_res, True
+    except Exception as e:
+        return e, False
+
+def db_count_record(username='', _id=''):
+    try:
+        collection = db["record"]
+        condition = {}
+        if username != '':
+            condition['userList'] = { '$all': [username]}
+        find_res = collection.count_documents(condition)
+        return find_res, True
+    except Exception as e:
+        return e, False
+
+def db_count_info():
+    try:
+        collection = db["info"]
+        print('k')
+        find_res = collection.count_documents({})
+        print(find_res)
+        return find_res, True
+    except Exception as e:
+        return e, False
+
+def db_count_problem():
+    try:
+        collection = db["question"]
+        find_res = collection.count_documents({})
+        print(find_res)
         return find_res, True
     except Exception as e:
         return e, False
@@ -391,10 +419,13 @@ def db_list_problem(page, perPage):
         print(e)
         return e, False
 
-def db_list_record(page, perPage):
+def db_list_record(page=0, perPage=0):
     try:
         collection = db["record"]
-        find_res = collection.find(sort=[('_id', pymongo.DESCENDING)], skip=(page - 1) * perPage, limit=perPage)
+        if page > 0:
+            find_res = collection.find(sort=[('_id', pymongo.DESCENDING)], skip=(page - 1) * perPage, limit=perPage)
+        else:
+            find_res = collection.find(sort=[('_id', pymongo.DESCENDING)])
         find_res = list(find_res)
         print(find_res)
         return find_res, True
