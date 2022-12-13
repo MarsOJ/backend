@@ -25,9 +25,16 @@ def insert_info():
 
 @info_bp.route("/delete/<id>", methods=['DELETE'])
 def delete_info(id):
-    if db_delete_info(id):
-        return "Success", 200
-    return "Delete Error", 400
+    try:
+        data = json.loads(request.data)
+        id_list = data['id']
+        success_num = 0
+        for info_id in id_list:
+            if db_delete_info(info_id):
+                success_num += 1
+        return success_num, 400
+    except Exception as e:
+        return e, 400
 
 @info_bp.route("/details/<id>", methods=['GET'])
 def get_details(id):

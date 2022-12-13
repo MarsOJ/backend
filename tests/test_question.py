@@ -149,17 +149,11 @@ def test_question_insert(client):
                 {'content':'中国的顶级域名是：', 'choice':['.cn','.hk','.us','.com']}, 
             ],
             'source': 'CSP-J',
-            'owner': 'panda',
-            'nSubmit':0,
-            'nAccept':0,    
-            'correct_rate':0,
-            'tag':['常识'],
             'difficultyInt':1,
-            'hidden_mod':-1,
         } 
         
     with client:
-        # res = client.post('/question/insert-single/', json=question1_data)
+        # res = client.post('/question/insert/', json=question1_data)
         # assert '200' in str(res)
         pass
         

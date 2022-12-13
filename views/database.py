@@ -33,19 +33,47 @@ def db_competition_settlement_user(username, credit, correctAnswersNum, totalAns
 
 def db_competition_settlement_result(problemID, userResult):
     try:
-        collection = db["competition"]
+        collection = db["record"]
         insert_content = {
             'problemID':problemID,
             'userResult':userResult, # [{'username':, 'correctness':[], 'score':[]}, ...]
+            'userList':[i['username'] for i in userResult],
+            'date':datetime.datetime.now()
         }
         collection.insert_one(insert_content)
         return 'success', True
     except Exception as e:
         return e, False
 
+def db_select_record(_id):
+    try:
+        collection = db["record"]
+        info_data = {
+            "_id": ObjectId(_id)
+        }
+        return collection.find_one(info_data)
+    except Exception as e:
+        return False
+
+def db_next_record(username='', _id=''):
+    try:
+        collection = db["record"]
+        condition = {}
+        if username != '':
+            condition['userList'] = { '$all': [username]}
+        if _id != '':
+            last_date = db_select_record(_id)['date']
+            condition['date'] = {'$lt':last_date}
+
+        find_res = collection.find(filter=condition, sort=[('date',pymongo.DESCENDING)], limit=5)
+        find_res = list(find_res)
+        return 'success', True
+    except Exception as e:
+        return e, False
+
 def db_select_user(name):
     try:
-        collection = db["account"]
+        collection = db["record"]
         user = {
             'username':name
         }
@@ -85,7 +113,7 @@ def db_insert_user(name, pw):
     except:
         return False
 
-def db_update_signature(name, signature):
+def db_update_signature(username, signature):
     try:
         collection = db["account"]
         update_res = collection.update_one({'username':username}, {'$set':{'signature':signature}})
@@ -95,7 +123,7 @@ def db_update_signature(name, signature):
     except Exception as e:
         return e, False
 
-def db_update_profile(name, newProfile):
+def db_update_profile(username, newProfile):
     try:
         collection = db["account"]
         update_res = collection.update_one({'username':username}, {'$set':{'profile':newProfile}})
@@ -165,7 +193,7 @@ def db_delete_favorite_problem(username, favorite_id, problem_id):
     except Exception as e:
         return e, False
 
-def db_move_favorite_problem(username, problem_id, dest_id, source_id):
+def db_move_favorite_problem(username, problem_id, dest_id, source_id, delete_tag):
     try:
         item = db_select_user(username)
         collection = db["account"]
@@ -184,7 +212,8 @@ def db_move_favorite_problem(username, problem_id, dest_id, source_id):
                 failed_num += 1
             else:
                 dest_problem.append(problem)
-                source_problem.remove(problem)
+                if delete_tag:
+                    source_problem.remove(problem)
                 success_num += 1
 
         update_res = collection.update_one({'username':username}, {'$set':{'favorite':favorites}})
@@ -468,7 +497,6 @@ def db_select_questions(_id='',title='',classification=[],source='',owner='',
 
 def db_insert_question(title='',classification=0,content='',subproblem=[],
                         answer=[],explanation=[],source ='',owner='',
-                        nSubmit=0,nAccept=0,correct_rate=-1,
                         tag=[],difficultyInt=-1,hidden_mod=-1):
     try:
         collection = db["question"]
@@ -483,12 +511,11 @@ def db_insert_question(title='',classification=0,content='',subproblem=[],
             'explanation':explanation,
             'source':source,
             'owner':owner,
-            'nSubmit':nSubmit,
-            'nAccept':nAccept,    
-            'correct_rate':correct_rate,
-            'tag':tag,
+            'nSubmit':0,
+            'nAccept':0,    
+            # 'tag':tag,
             'difficultyInt':difficultyInt,
-            'hidden_mod':hidden_mod, 
+            # 'hidden_mod':hidden_mod, 
         }
         new_question_data = collection.insert_one(question_data)
         print('print insert result')
@@ -500,7 +527,6 @@ def db_insert_question(title='',classification=0,content='',subproblem=[],
         return False
 
 # _id 字段基本上是不可变的。在创建文档之后，根据定义，它已被分配了一个无法更改的 _id
-# TODO
 def db_delete_question(_id):
     try:
         collection = db["question"]
@@ -515,18 +541,7 @@ def db_delete_question(_id):
     except:
         return False
 
-# def db_delete_database_all():
-#     try:
-#         print('enter db_delete_database_all')
-#         collection = db["question"]
-#         collection.drop()
-
-#         return True
-#     except:
-#         return False
-
-
-def db_update_question(_id='', title='',classification=0,content='',subproblem=[],
+def db_update_question(_id='', title='',content='',subproblem=[],
                         answer=[],explanation=[],source ='',owner='',
                         nSubmit=0,nAccept=0,correct_rate=-1,
                         tag=[],difficultyInt=-1,hidden_mod=-1):
@@ -534,8 +549,6 @@ def db_update_question(_id='', title='',classification=0,content='',subproblem=[
         collection = db["question"]
         update_data = {
             'title': title,
-            'classification': classification,
-            'submit_date': datetime.datetime.now(),
             'last_modified_date': datetime.datetime.now(),
             'content':content,
             'subproblem':subproblem,
