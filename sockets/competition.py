@@ -254,17 +254,16 @@ def settlement(username_list, points, problem_set):
     correctness = [[] for _ in range(len(username_list))]
     for point in points:
         for idx in range(len(username_list)):
-            scores.append(sum(point[idx]))
-            correctness.append(reduce(lambda x, y : x and y, list(map(lambda x : x > 0, point[idx]))))
+            scores[idx].append(sum(point[idx]))
+            correctness[idx].append(reduce(lambda x, y : x and y, list(map(lambda x : x > 0, point[idx]))))
     total_problems = len(points)
 
     ranklist = [{'username':username_list[i], 'correctness':correctness[i], 'score':scores[i]} for i in range(len(username_list))]
 
     ranklist.sort(key=lambda x:sum(x['score']), reverse=True)
-
     for idx, rank in enumerate(ranklist):
         username = rank['username']
-        credit = len(ranklist) - idx
+        credit = len(ranklist) - idx - 1
         correctAnswersNum = sum(rank['correctness'])
         totalAnswersNum = total_problems
         victoriesNum = 1 if idx == 1 else 0

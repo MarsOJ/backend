@@ -1,5 +1,6 @@
 from bson.objectid import ObjectId
 from views.database import *
+from views.account import login_required, authority_required
 from flask import Blueprint, Flask, request, session, jsonify
 import pymongo
 from bson.objectid import ObjectId
@@ -82,8 +83,36 @@ def get_details(id):
     item = db_select_questions(id)[0]
     try:
         item['id'] = str(item['_id'])
+        del item['_id']
         item['submit_date'] = item['submit_date'].strftime('%Y-%m-%d')
         item['last_modified_date'] = item['last_modified_date'].strftime('%Y-%m-%d')
         return json.dumps(item), 200
-    except:
-        return "Get Details Error", 400
+    except Exception as e:
+        return e, 400
+
+@authority_required
+@question_bp.route("/list/", methods=['GET'])
+def problem_list():
+    try:
+        page = int(request.args.get('p'))
+        itemPerPage = int(request.args.get('itemPerPage'))
+
+        select_res, state = db_list_problem(page, itemPerPage)
+        if not state:
+            raise('database error')
+
+        ret = []
+        for problem in select_res:
+            ret.append({
+                'id':str(problem['_id']),
+                'title':'',
+                'content':problem['content'][:20],
+                'type':problem['classification'],
+                # TODO:
+                'date':"2022/12/03",
+            })
+        print(ret)
+        return json.dumps(ret), 200
+    except Exception as e:
+        print(e)
+        return e, 400

@@ -116,7 +116,6 @@ def favorite_problem():
             if destID == problemID:
                 return 'Destination cannot be equal to source', 400
             _, state = db_move_favorite_problem(username=username,  problem_id=problemID, dest_id=destID, source_id=sourceID, delete_tag = deleteOrNot)
-            print(_)
             if state:
                 return json.dumps(list(_)), 200
             return _, 400
@@ -145,9 +144,10 @@ def favorite_problem():
                     'title':'',
                     'content':problem['content'][:20],
                     'type':problem['classification'],
+                    # TODO:
                     'date':"2022/12/03",
                 })
-            print('ret',ret)
+            # print('ret',ret)
             return json.dumps(ret), 200
         except Exception as e:
             print(e)

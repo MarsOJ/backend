@@ -1,5 +1,6 @@
 from flask import Blueprint, Flask, request, session, jsonify
 from views.database import *
+from views.account import login_required, authority_required
 import json
 
 record_bp = Blueprint("record", __name__)
@@ -14,7 +15,7 @@ def get_personal():
     try:
         try:
             data = json.loads(request.data)
-            last_id = data['lastId']
+            last_id = data['lastID']
         except:
             last_id = ''
         username = session['username']
@@ -34,19 +35,13 @@ def get_personal():
     except Exception as e:
         return e, 400
 
-@record_bp.route("/all/", methods=['GET', 'POST'])
-def get_all():
+@authority_required
+@record_bp.route("/all/", methods=['GET'])
+def get_list():
     try:
-        try:
-            data = json.loads(request.data)
-            last_id = data['lastId']
-        except:
-            last_id = ''
-        username = session['username']
-        user_info = db_select_user(username)
-        if not user_info['authority']:
-            raise('Authority Error')
-        find_res, state = db_next_record( _id=last_id)
+        page = int(request.args.get('p'))
+        itemPerPage = int(request.args.get('itemPerPage'))
+        find_res, state = db_list_record(page, itemPerPage)
         if state is False:
             return "Get Error", 400
         for item in find_res:

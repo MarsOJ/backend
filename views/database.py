@@ -19,16 +19,18 @@ def db_competition_settlement_user(username, credit, correctAnswersNum, totalAns
     try:
         collection = db["account"]
         select_res = db_select_user(username)
+
         select_res['credit'] += credit
         select_res['correctAnswersNum'] += correctAnswersNum
         select_res['totalAnswersNum'] += totalAnswersNum
         select_res['victoriesNum'] += victoriesNum
         select_res['totalCompetitionsNum'] += 1
-        update_res = collection.update_one({'username':username}, {'$set':{select_res}})
+        update_res = collection.update_one({'username':username}, {'$set':select_res})
         if update_res.modified_count != 1:
             return 'Update error', False
         return 'success', True
     except Exception as e:
+        print(e)
         return e, False
 
 def db_competition_settlement_result(problemID, userResult):
@@ -62,10 +64,11 @@ def db_next_record(username='', _id=''):
         if username != '':
             condition['userList'] = { '$all': [username]}
         if _id != '':
-            last_date = db_select_record(_id)['date']
-            condition['date'] = {'$lt':last_date}
+            # last_date = db_select_record(_id)['date']
+            # condition['date'] = {'$lt':last_date}
+            condition['_id'] = {'$lt':ObjectId(_id)}
 
-        find_res = collection.find(filter=condition, sort=[('date',pymongo.DESCENDING)], limit=5)
+        find_res = collection.find(filter=condition, sort=[('_id',pymongo.DESCENDING)], limit=5)
         find_res = list(find_res)
         return find_res, True
     except Exception as e:
@@ -365,6 +368,40 @@ def db_update_user(name, newpw):
     date:
 }
 '''
+
+def db_list_info(page, perPage):
+    try:
+        collection = db["info"]
+        find_res = collection.find(sort=[('_id', pymongo.DESCENDING)], skip=(page - 1) * perPage, limit=perPage)
+        find_res = list(find_res)
+        print(find_res)
+        return find_res, True
+    except Exception as e:
+        print(e)
+        return e, False
+
+def db_list_problem(page, perPage):
+    try:
+        collection = db["question"]
+        find_res = collection.find(sort=[('_id', pymongo.DESCENDING)], skip=(page - 1) * perPage, limit=perPage)
+        find_res = list(find_res)
+        print(find_res)
+        return find_res, True
+    except Exception as e:
+        print(e)
+        return e, False
+
+def db_list_record(page, perPage):
+    try:
+        collection = db["record"]
+        find_res = collection.find(sort=[('_id', pymongo.DESCENDING)], skip=(page - 1) * perPage, limit=perPage)
+        find_res = list(find_res)
+        print(find_res)
+        return find_res, True
+    except Exception as e:
+        print(e)
+        return e, False
+
 def db_select_info(_id):
     try:
         collection = db["info"]
@@ -381,10 +418,9 @@ def db_next_info(_id=''):
         if _id == '':
             condition = None
         else:
-            last_date = db_select_info(_id)['date']
-            condition = {'date':{'$lt':last_date}}
-            print(last_date)
-        find_res = collection.find(filter=condition, sort=[('date',pymongo.DESCENDING)], limit=5)
+            condition = {'_id':{'$lt':ObjectId(_id)}}
+            # print(last_date)
+        find_res = collection.find(filter=condition, sort=[('_id',pymongo.DESCENDING)], limit=5)
         find_res = list(find_res)
         return find_res
     except Exception as e:

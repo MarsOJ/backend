@@ -18,6 +18,18 @@ def login_required(func):
         return func(*args, **kargs)
     return wrapper
 
+def authority_required(func):
+    @wraps(func)
+    def wrapper(*args, **kargs):
+        if 'username' not in session:
+            abort(401)
+        username = session['username']
+        user_info = db_select_user(username)
+        if not user_info['authority']:
+            raise('Authority Error')
+        return func(*args, **kargs)
+    return wrapper
+
 @account_bp.route("/login/", methods=['POST'])
 def login():
     data = json.loads(request.data)
