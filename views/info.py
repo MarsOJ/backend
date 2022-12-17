@@ -26,20 +26,21 @@ def insert_info():
 
 @info_bp.route("/update/", methods=['POST'])
 def update_info():
-    data = json.loads(request.data)
     try:
+        data = json.loads(request.data)
         _id = data['id']
         title = data['title']
         content = data['content']
         source = data['source']
-    except:
+    except Exception as e:
+        print(e)
         return "Bad Request", 400
     if db_update_info(_id, title, content, source):
         return "Success", 200
     return "Insert Error", 400
 
 @info_bp.route("/delete/", methods=['DELETE'])
-def delete_info(id):
+def delete_info():
     try:
         data = json.loads(request.data)
         id_list = data['id']
@@ -47,9 +48,9 @@ def delete_info(id):
         for info_id in id_list:
             if db_delete_info(info_id):
                 success_num += 1
-        return success_num, 400
+        return json.dumps([success_num]), 200
     except Exception as e:
-        return e, 400
+        return str(e), 400
 
 @info_bp.route("/details/<id>", methods=['GET'])
 def get_details(id):
@@ -95,11 +96,11 @@ def get_list():
             item['content'] = item['content'][:20]
             item['date'] = item['date'].strftime('%Y-%m-%d')
         if not state:
-            raise('database error')
+            raise Exception('database error')
         return json.dumps(find_res), 200
     except Exception as e:
         print(e)
-        return e, 400
+        return str(e), 400
 
 @info_bp.route("/count/", methods=['GET'])
 def info_count():
@@ -107,8 +108,8 @@ def info_count():
         select_res, state = db_count_info()
         print(select_res, type(select_res))
         if not state:
-            raise('database error')
+            raise Exception('database error')
         return json.dumps({'count':select_res}), 200
     except Exception as e:
         print(e)
-        return e, 400
+        return str(e), 400

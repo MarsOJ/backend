@@ -31,7 +31,7 @@ def db_competition_settlement_user(username, credit, correctAnswersNum, totalAns
         return 'success', True
     except Exception as e:
         print(e)
-        return e, False
+        return str(e), False
 
 def db_competition_settlement_result(problemID, userResult):
     try:
@@ -45,7 +45,7 @@ def db_competition_settlement_result(problemID, userResult):
         collection.insert_one(insert_content)
         return 'success', True
     except Exception as e:
-        return e, False
+        return str(e), False
 
 def db_select_record(_id):
     try:
@@ -70,7 +70,7 @@ def db_next_record(username='', _id=''):
         find_res = list(find_res)
         return find_res, True
     except Exception as e:
-        return e, False
+        return str(e), False
 
 def db_count_record(username='', _id=''):
     try:
@@ -81,7 +81,7 @@ def db_count_record(username='', _id=''):
         find_res = collection.count_documents(condition)
         return find_res, True
     except Exception as e:
-        return e, False
+        return str(e), False
 
 def db_count_info():
     try:
@@ -91,7 +91,7 @@ def db_count_info():
         print(find_res)
         return find_res, True
     except Exception as e:
-        return e, False
+        return str(e), False
 
 def db_count_problem():
     try:
@@ -100,7 +100,7 @@ def db_count_problem():
         print(find_res)
         return find_res, True
     except Exception as e:
-        return e, False
+        return str(e), False
 
 def db_ranklist():
     try:
@@ -109,7 +109,7 @@ def db_ranklist():
         find_res = list(find_res)
         return find_res, True
     except Exception as e:
-        return e, False  
+        return str(e), False  
 
 def db_select_user(name):
     try:
@@ -118,7 +118,9 @@ def db_select_user(name):
             'username':name
         }
         res = collection.find_one(user) # return dict
-        del res['_id']
+        # res['_id'] = str(res['_id'])
+        if isinstance(res, dict) and '_id' in res.keys():
+            del res['_id']
         return res
     except Exception as e:
         print(e)
@@ -162,7 +164,7 @@ def db_update_signature(username, signature):
             return 'Update error', False
         return 'success', True
     except Exception as e:
-        return e, False
+        return str(e), False
 
 def db_update_profile(username, newProfile):
     try:
@@ -172,7 +174,7 @@ def db_update_profile(username, newProfile):
             return 'Update error', False
         return 'success', True
     except Exception as e:
-        return e, False
+        return str(e), False
 
 def db_select_profile(name):
     try:
@@ -201,7 +203,7 @@ def db_insert_favorite(username, favorite_name):
             return 'Update error', False
         return 'success', True
     except Exception as e:
-        return e, False
+        return str(e), False
 
 def db_delete_favorite_problem(username, favorite_id, problem_id):
     try:
@@ -232,7 +234,7 @@ def db_delete_favorite_problem(username, favorite_id, problem_id):
             success_num = 0
         return (success_num, noexist_num, failed_num), True
     except Exception as e:
-        return e, False
+        return str(e), False
 
 def db_move_favorite_problem(username, problem_id, dest_id, source_id, delete_tag):
     try:
@@ -346,7 +348,7 @@ def db_select_all_favorites(username):
         item = db_select_user(username)
         return item['favorite'], True
     except Exception as e:
-        return e, False
+        return str(e), False
 
 def db_verify_user(name, pw):
     try:
@@ -406,7 +408,7 @@ def db_list_info(page, perPage):
         return find_res, True
     except Exception as e:
         print(e)
-        return e, False
+        return str(e), False
 
 def db_list_problem(page, perPage):
     try:
@@ -417,7 +419,7 @@ def db_list_problem(page, perPage):
         return find_res, True
     except Exception as e:
         print(e)
-        return e, False
+        return str(e), False
 
 def db_list_record(page=0, perPage=0):
     try:
@@ -431,7 +433,7 @@ def db_list_record(page=0, perPage=0):
         return find_res, True
     except Exception as e:
         print(e)
-        return e, False
+        return str(e), False
 
 def db_select_info(_id):
     try:
@@ -483,7 +485,8 @@ def db_delete_info(_id):
         if delete_res.deleted_count < 1:
             return False
         return True
-    except:
+    except Exception as e:
+        print(e)
         return False
 
 def db_update_info(_id, title, content, source):
@@ -494,11 +497,12 @@ def db_update_info(_id, title, content, source):
             'content': content,
             'source' : source,
         }
-        update_res = collection.update_one({'_id':ObjectId(_id)}, update_data)
+        update_res = collection.update_one({'_id':ObjectId(_id)}, {"$set":update_data})
         if update_res.modified_count < 1:
             return False
         return True
-    except:
+    except Exception as e:
+        print(e)
         return False
     
 

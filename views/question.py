@@ -35,7 +35,8 @@ def insert_single_question():
         source= data['source']
         owner= session['username']
         difficultyInt= data['difficultyInt']
-    except:
+    except Exception as e:
+        print(e)
         return "Bad Request", 400
 
     if db_insert_question(classification=classification,content=content, subproblem=subproblem,
@@ -68,27 +69,34 @@ def update_single_question():
 def delete_question():
     try:
         data = json.loads(request.data)
-        id_list = data['problem_id']
+        print(data)
+        id_list = data['problemID']
+        print(id_list)
         success_num = 0
         for problem_id in id_list:
             if db_delete_question(problem_id):
                 success_num += 1
-        return success_num, 400
+        return json.dumps([success_num]), 200
     except Exception as e:
-        return e, 400
+        print(e)
+        return str(e), 400
 
 
 @question_bp.route("/details/<id>", methods=['GET'])
 def get_details(id):
-    item = db_select_questions(id)[0]
     try:
-        item['id'] = str(item['_id'])
-        del item['_id']
-        item['submit_date'] = item['submit_date'].strftime('%Y-%m-%d')
-        item['last_modified_date'] = item['last_modified_date'].strftime('%Y-%m-%d')
-        return json.dumps(item), 200
+        res = db_select_questions(id)
+        if (len(res) > 0):
+            item = res[0]
+            item['id'] = str(item['_id'])
+            del item['_id']
+            item['submit_date'] = item['submit_date'].strftime('%Y-%m-%d')
+            item['last_modified_date'] = item['last_modified_date'].strftime('%Y-%m-%d')
+            return json.dumps(item), 200
+        else:
+            raise Exception('Problem not exists')
     except Exception as e:
-        return e, 400
+        return str(e), 400
 
 @authority_required
 @question_bp.route("/list/", methods=['GET'])
@@ -99,7 +107,7 @@ def problem_list():
 
         select_res, state = db_list_problem(page, itemPerPage)
         if not state:
-            raise('database error')
+            raise Exception('database error')
 
         ret = []
         for problem in select_res:
@@ -115,7 +123,7 @@ def problem_list():
         return json.dumps(ret), 200
     except Exception as e:
         print(e)
-        return e, 400
+        return str(e), 400
 
 @authority_required
 @question_bp.route("/count/", methods=['GET'])
@@ -123,8 +131,8 @@ def problem_count():
     try:
         select_res, state = db_count_problem()
         if not state:
-            raise('database error')
+            raise Exception('database error')
         return json.dumps({'count':select_res}), 200
     except Exception as e:
         print(e)
-        return e, 400
+        return str(e), 400

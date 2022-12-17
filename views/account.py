@@ -26,7 +26,7 @@ def authority_required(func):
         username = session['username']
         user_info = db_select_user(username)
         if not user_info['authority']:
-            raise('Authority Error')
+            raise Exception('Authority Error')
         return func(*args, **kargs)
     return wrapper
 
@@ -108,14 +108,17 @@ def change_password():
 @login_required
 def get_info():
     try:
-        username = session['username']
+        try:
+            username = str(request.args.get('username'))
+        except:
+            username = session['username']
         info = db_select_user(username)
         del info['pwhash']
         if not info:
-            raise('Database Error')
+            raise Exception('Database Error')
         return json.dumps(info), 200
     except Exception as e:
-        return e, 400
+        return str(e), 400
 
 @account_bp.route("/profile/", methods=['GET', 'POST'])
 @login_required
@@ -135,7 +138,7 @@ def profile():
                 return "Database Error", 400
             return _, 200
     except Exception as e:
-        return e, 400
+        return str(e), 400
 
 @account_bp.route("/signature/", methods=['POST'])
 @login_required
@@ -150,4 +153,4 @@ def signature():
         return "Success", 200
        
     except Exception as e:
-        return e, 400
+        return str(e), 400

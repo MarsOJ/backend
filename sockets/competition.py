@@ -17,7 +17,7 @@ waiting_pool = list() # list of sid
 competing_pool = dict() # dict - key:uuid4, value:competingData()
 
 global_mutex = threading.Lock()
-PLAYER_NUM = 2
+PLAYER_NUM = 3
 
 class socketData():
     def __init__(self, sid, username, state):
@@ -101,7 +101,7 @@ def on_cancel():
         if request.sid in waiting_pool:
             waiting_pool.remove(request.sid)
         else:
-            raise('Error')
+            raise Exception('Error')
     except:
         pass
 

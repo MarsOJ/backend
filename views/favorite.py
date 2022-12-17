@@ -24,7 +24,7 @@ def favorite_list():
             return _, 400
         except Exception as e:
             print(e)
-            return e,400
+            return str(e),400
     elif (request.method == 'DELETE'):
         data = json.loads(request.data)
         try:
@@ -38,7 +38,7 @@ def favorite_list():
             return _, 400
         except Exception as e:
             print(e)
-            return e,400
+            return str(e),400
 
     elif (request.method == 'PUT'):
         data = json.loads(request.data)
@@ -54,7 +54,7 @@ def favorite_list():
             return _, 400
         except Exception as e:
             print(e)
-            return e, 400
+            return str(e), 400
 
     elif (request.method == 'GET'):
         try:
@@ -73,7 +73,7 @@ def favorite_list():
             return json.dumps(res), 200
         except Exception as e:
             print(e)
-            return e, 400
+            return str(e), 400
 
 @favorite_bp.route("/problem/", methods=['POST', 'DELETE', 'PUT', 'GET'])
 def favorite_problem():
@@ -90,7 +90,7 @@ def favorite_problem():
             return _, 400
         except Exception as e:
             print(e)
-            return e, 400
+            return str(e), 400
     elif (request.method == 'DELETE'):
         data = json.loads(request.data)
         try:
@@ -104,7 +104,7 @@ def favorite_problem():
             return _, 400
         except Exception as e:
             print(e)
-            return e, 400
+            return str(e), 400
 
     elif (request.method == 'PUT'):
         data = json.loads(request.data)
@@ -122,7 +122,7 @@ def favorite_problem():
             return _, 400
         except Exception as e:
             print(e)
-            return e, 400
+            return str(e), 400
 
     elif (request.method == 'GET'):
         try:
@@ -135,20 +135,31 @@ def favorite_problem():
 
             select_res, state = db_select_favorite_problem(username=username, favorite_id=favoriteID)
             if not state:
-                raise('database error')
+                raise Exception('database error')
 
             ret = []
             for pid in select_res[(page - 1) * itemPerPage : page * itemPerPage]:
-                problem = db_select_questions(_id=pid)[0]
-                ret.append({
-                    'id':str(problem['_id']),
-                    'title':'',
-                    'content':problem['content'][:20],
-                    'type':problem['classification'],
-                    # TODO:
-                    'date':"2022/12/03",
-                })
+                
+                res = db_select_questions(_id=pid)
+                if (len(res) > 0):
+                    problem = res[0]
+                    ret.append({
+                        'id':str(problem['_id']),
+                        'title':'',
+                        'content':problem['content'][:20],
+                        'type':problem['classification'],
+                        # TODO:
+                        'date':"2022/12/03",
+                    })
+                else:
+                    ret.append({
+                        'id':pid,
+                        'title':'',
+                        'content':'题目不存在',
+                        'type':0,
+                        'date':"2022/12/03",
+                    })
             return json.dumps(ret), 200
         except Exception as e:
             print(e)
-            return e, 400
+            return str(e), 400

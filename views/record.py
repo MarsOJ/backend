@@ -36,10 +36,10 @@ def get_personal():
             del item['problemID']
             item['scores'] = [ sum(user['score']) for user in item['userResult']]
             del item['userResult']
-            item['date'] = item['date'].strftime('%Y-%m-%d')
+            item['date'] = item['date'].strftime('%Y-%m-%d %H:%M:%S')
         return json.dumps(find_res), 200
     except Exception as e:
-        return e, 400
+        return str(e), 400
 
 @authority_required
 @record_bp.route("/all/", methods=['GET'])
@@ -58,7 +58,7 @@ def get_list():
             del item['problemID']
             item['scores'] = [ sum(user['score']) for user in item['userResult']]
             del item['userResult']
-            item['date'] = item['date'].strftime('%Y-%m-%d')
+            item['date'] = item['date'].strftime('%Y-%m-%d %H:%M:%S')
         return json.dumps(find_res), 200
     except Exception as e:
         return str(e), 400
@@ -68,14 +68,48 @@ def get_rank():
     try:
         find_res, state = db_ranklist()
         if not state:
-            raise('Database Error')
+            raise Exception('Database Error')
         res = [{'username':user['username'], 'signature':user['signature'], 'score':user['credit']} for user in find_res]
         return json.dumps(res), 200
     except Exception as e:
-        return e, 400
+        return str(e), 400
 
-# @authority_required
-@record_bp.route("/download/", methods=['GET'])
+@authority_required
+@record_bp.route("/download/<id>", methods=['GET'])
+def download_record_one(id):
+    try:
+        find_res = db_select_record(id)        
+        if not find_res:
+            return "Get Error", 400
+        print(find_res)
+        write_content = []
+        userResult = find_res['userResult']
+        problemID = find_res['problemID']
+        for i in range(len(userResult[0]['correctness'])):
+            temp = [i, problemID[i]]
+            temp.extend(['正确' if j['correctness'][i] else '错误' for j in userResult])
+            write_content.append(temp)
+        
+        filedir = TEMPFILES_DIR + '/' + str(uuid.uuid4())
+        os.makedirs(filedir)
+        file_name = 'record_{}.csv'.format(id)
+        labels = ['题目序号', '题目ID'] + [i['username'] for i in userResult]
+        write_content = [{j : i[idx] for idx, j in enumerate(labels)}  for i in write_content]
+        with open(filedir + '/' + file_name, 'w', encoding='GB2312') as f:
+            writer = csv.DictWriter(f, fieldnames=labels)
+            writer.writeheader()
+            for elem in write_content:
+                writer.writerow(elem)
+        response = make_response(send_from_directory(filedir, file_name, as_attachment=True))
+        shutil.rmtree(filedir)
+        return response
+        # return 'True', 200
+    except Exception as e:
+        print(e)
+        return str(e), 200
+
+@authority_required
+@record_bp.route("/download-all/", methods=['GET'])
 def download_record():
     try:
         find_res, state = db_list_record()        
@@ -101,12 +135,13 @@ def download_record():
         filedir = TEMPFILES_DIR + '/' + str(uuid.uuid4())
         os.makedirs(filedir)
         labels = ['对战记录ID', '时间', '第一名', '第二名', '第三名', '第四名', '题目ID']
-        with open(filedir + r'/record.csv', 'w', encoding='GB2312',) as f:
+        file_name = 'record_all.csv'
+        with open(filedir + '/' + file_name, 'w', encoding='GB2312',) as f:
             writer = csv.DictWriter(f, fieldnames=labels)
             writer.writeheader()
             for elem in write_content:
                 writer.writerow(elem)
-        response = make_response(send_from_directory(filedir, 'record.csv', as_attachment=True))
+        response = make_response(send_from_directory(filedir, file_name, as_attachment=True))
         shutil.rmtree(filedir)
         return response
         # return 'True', 200
@@ -120,7 +155,7 @@ def get_cound():
     try:
         res, state = db_count_record()
         if not state:
-            raise('database error')
+            raise Exception('database error')
         return json.dumps({'count':res}), 200
     except Exception as e:
-        return e, 400
+        return str(e), 400
