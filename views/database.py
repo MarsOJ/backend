@@ -141,7 +141,7 @@ def db_insert_user(name, pw):
         user = {
             'username': name, 
             'pwhash': pwhash,
-            'favorite': {'0':{'name':'default', 'problemID':[]}},
+            'favorite': {'0':{'name':'默认收藏夹', 'problemID':{}}},
             'credit': 0,
             'profile': '',
             'authority': False,
@@ -194,7 +194,7 @@ def db_insert_favorite(username, favorite_name):
         
         favorites[favoriteID] = ({
             'name':favorite_name,
-            'problemID':[]
+            'problemID':{}
         })
         
         collection = db["account"]
@@ -220,13 +220,14 @@ def db_delete_favorite_problem(username, favorite_id, problem_id):
         for problem in problem_id:
             print(problem)
             # check if problem in favorites
-            if problem not in problem_set:
+            if problem not in problem_set.keys():
                 noexist_num += 1
             # check if in dataset
-            elif not db_select_questions(_id=problem):
-                failed_num += 1
+            # elif not db_select_questions(_id=problem):
+            #     failed_num += 1
             else:
-                problem_set.remove(problem)
+                # problem_set.remove(problem)
+                del problem_set[problem]
                 success_num += 1
         update_res = collection.update_one({'username':username}, {'$set':{'favorite':favorites}})
         if update_res.modified_count != 1:
@@ -251,12 +252,13 @@ def db_move_favorite_problem(username, problem_id, dest_id, source_id, delete_ta
         failed_num = 0
         for problem in problem_id:
             # check if problem in favorites
-            if problem not in source_problem or problem in dest_problem:
+            if problem not in source_problem.keys() or problem in dest_problem.keys():
                 failed_num += 1
             else:
-                dest_problem.append(problem)
+                dest_problem[problem] = {'modified_date':datetime.datetime.now()}
                 if delete_tag:
-                    source_problem.remove(problem)
+                    # source_problem.remove(problem)
+                    del source_problem[problem]
                 success_num += 1
 
         update_res = collection.update_one({'username':username}, {'$set':{'favorite':favorites}})
@@ -279,18 +281,19 @@ def db_insert_favorite_problem(username, favorite_id, problem_id):
         success_num = 0
         failed_num = 0
         repeated_num = 0
-        add_items = []
+        add_items = {}
         for problem in problem_id:
             # check if problem in favorites
-            if problem in problem_set:
+            if problem in problem_set.keys():
                 repeated_num += 1
             # check if in dataset
             elif not db_select_questions(_id=problem):
                 failed_num += 1
             else:
-                add_items.append(problem)
+                # add_items.append(problem)
+                add_items[problem] = {'modified_date':datetime.datetime.now()}
 
-        problem_set.extend(add_items)
+        problem_set.update(add_items)
         update_res = collection.update_one({'username':username}, {'$set':{'favorite':favorites}})
         if update_res.modified_count != 1:
             failed_num += len(add_items)
@@ -308,6 +311,8 @@ def db_select_favorite_problem(username, favorite_id):
         favorites = item['favorite']
         fav = favorites[favorite_id]
         problem_set = fav['problemID']
+        problem_set = [(k, v['modified_date']) for k, v in problem_set.items()]
+        problem_set.sort(key = lambda x:x[1])
         return problem_set, True
     except:
         return 'Key error', False

@@ -139,8 +139,7 @@ def favorite_problem():
 
             ret = []
             for pid in select_res[(page - 1) * itemPerPage : page * itemPerPage]:
-                
-                res = db_select_questions(_id=pid)
+                res = db_select_questions(_id=pid[0])
                 if (len(res) > 0):
                     problem = res[0]
                     ret.append({
@@ -149,7 +148,7 @@ def favorite_problem():
                         'content':problem['content'][:20],
                         'type':problem['classification'],
                         # TODO:
-                        'date':"2022/12/03",
+                        'date':pid[1].strftime("%Y-%m-%d"),
                     })
                 else:
                     ret.append({
