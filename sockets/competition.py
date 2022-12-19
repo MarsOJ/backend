@@ -17,7 +17,7 @@ waiting_pool = list() # list of sid
 competing_pool = dict() # dict - key:uuid4, value:competingData()
 
 global_mutex = threading.Lock()
-PLAYER_NUM = 3
+PLAYER_NUM = 2
 
 class socketData():
     def __init__(self, sid, username, state):

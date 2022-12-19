@@ -514,7 +514,8 @@ questions
     classification: int |单项选择题0/阅读程序题1/完善程序题2|
     submit_date: datetime.datetime.now()
     last_modified_date: datetime.datetime.now(),
-    content:   string  | 题面                             |
+    content:   string  | 题面
+    code: string       | 代码块
     'subproblem': // 单选就一个元素且content留空，大题可能5-6个
     [{
         'content':'',//题干
@@ -577,7 +578,7 @@ def db_select_questions(_id='',title='',classification=[],source='',owner='',
     except Exception as e:
         return False
 
-def db_insert_question(title='',classification=0,content='',subproblem=[],
+def db_insert_question(title='',classification=0,content='',code='', subproblem=[],
                         answer=[],explanation=[],source ='',owner='',
                         tag=[],difficultyInt=-1,hidden_mod=-1):
     try:
@@ -588,6 +589,7 @@ def db_insert_question(title='',classification=0,content='',subproblem=[],
             'submit_date': datetime.datetime.now(),
             'last_modified_date': datetime.datetime.now(),
             'content':content,
+            'code':code,
             'subproblem':subproblem,
             'answer':answer,
             'explanation':explanation,
@@ -623,7 +625,7 @@ def db_delete_question(_id):
     except:
         return False
 
-def db_update_question(_id='', title='',content='',subproblem=[],
+def db_update_question(_id='', title='',content='',code='',subproblem=[],
                         answer=[],explanation=[],source ='',owner='',
                         nSubmit=0,nAccept=0,correct_rate=-1,
                         tag=[],difficultyInt=-1,hidden_mod=-1):
@@ -633,6 +635,7 @@ def db_update_question(_id='', title='',content='',subproblem=[],
             'title': title,
             'last_modified_date': datetime.datetime.now(),
             'content':content,
+            'code':code,
             'subproblem':subproblem,
             'answer':answer,
             'explanation':explanation,

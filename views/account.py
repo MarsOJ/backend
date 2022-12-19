@@ -124,8 +124,9 @@ def get_info():
 @login_required
 def profile():
     try:
-        name = session['username']
+        
         if (request.method == 'POST'):
+            name = session['username']
             data = json.loads(request.data)
             profile = data['profile']
             _, state = db_update_profile(name, profile)
@@ -133,7 +134,12 @@ def profile():
                 return "Database Error", 400
             return "Success", 200
         else:
-            _, state = db_select_profile(name)
+            try:
+                username = str(request.args.get('username'))
+            except:
+                username = session['username']
+            print(username)
+            _, state = db_select_profile(username)
             if not state:
                 return "Database Error", 400
             return _, 200
