@@ -7,6 +7,8 @@ from bson.objectid import ObjectId
 import datetime
 import random
 import json
+import os
+import shutil
 
 question_bp = Blueprint("question", __name__)
 
@@ -21,6 +23,37 @@ def question_index():
 # title='',classification=[],source='',owner='',
 # tag=[],difficultyInt=-1,submit_date='',last_modified_date='',
 # nSubmit = -1,nAccept=-1,correct_rate =-1
+
+TEMPFILES_DIR = 'tempfiles'
+
+@question_bp.route("/upload/", methods=['POST'])
+def upload_problem():
+    try:
+        file = request.files['file']
+        filedir = TEMPFILES_DIR + '/' + str(uuid.uuid4())
+        os.makedirs(filedir)
+        filename = file.filename
+        filepath = filedir + '/' + filename
+        file.save(filepath)
+        try:
+            with open(filepath, 'r', encoding='GB2312') as f:
+                data = json.load(f)
+        except:
+            print('utf8')
+            with open(filepath, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        success_num = 0
+        print(data)
+        for item in data:
+            if db_insert_question(**item):
+                success_num += 1
+        shutil.rmtree(filedir)
+        print(success_num)
+        return json.dumps({'success_num':success_num}), 200
+    except Exception as e:
+        print(str(e))
+        return str(e), 200
+        
 
 
 @question_bp.route("/insert/", methods=['POST'])
@@ -64,7 +97,7 @@ def update_single_question():
         return "Success", 200
     return "Insert Error", 400
 
-
+@authority_required
 @question_bp.route("/delete/", methods=['DELETE'])
 def delete_question():
     try:
@@ -113,13 +146,12 @@ def problem_list():
         for problem in select_res:
             ret.append({
                 'id':str(problem['_id']),
-                'title':'',
-                'content':problem['content'][:20],
+                'title':problem['title'],
+                'content':problem['content'][:40],
                 'type':problem['classification'],
-                # TODO:
-                'date':"2022/12/03",
+                'date':problem['last_modified_date'].strftime("%Y-%m-%d")
             })
-        print(ret)
+        # print(ret)
         return json.dumps(ret), 200
     except Exception as e:
         print(e)

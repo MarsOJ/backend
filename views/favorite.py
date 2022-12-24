@@ -144,20 +144,20 @@ def favorite_problem():
                     problem = res[0]
                     ret.append({
                         'id':str(problem['_id']),
-                        'title':'',
+                        'title':problem['title'],
                         'content':problem['content'][:20],
                         'type':problem['classification'],
-                        # TODO:
                         'date':pid[1].strftime("%Y-%m-%d"),
                     })
                 else:
                     ret.append({
-                        'id':pid,
-                        'title':'',
+                        'id':pid[0],
+                        'title':'N/A',
                         'content':'题目不存在',
                         'type':0,
-                        'date':"2022/12/03",
+                        'date':"N/A",
                     })
+            print(ret)
             return json.dumps(ret), 200
         except Exception as e:
             print(e)

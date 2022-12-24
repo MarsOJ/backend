@@ -235,6 +235,7 @@ def db_delete_favorite_problem(username, favorite_id, problem_id):
             success_num = 0
         return (success_num, noexist_num, failed_num), True
     except Exception as e:
+        print(e)
         return str(e), False
 
 def db_move_favorite_problem(username, problem_id, dest_id, source_id, delete_tag):
@@ -326,11 +327,12 @@ def db_delete_favorite(username, favorite_id):
         del favorites[favorite_id]
 
         delete_res = collection.update_one({'username':username}, {'$set':{'favorite':favorites}})
-        if delete_res.deleted_count != 1:
+        if delete_res.modified_count != 1:
             return 'Update error', False
-        return True
+        return 'Success', True
     except:
-        return 'Key error', False
+        print(str(e))
+        return str(e), False
 
 def db_rename_favorite(username, new_name, favorite_id):
     try:

@@ -29,13 +29,14 @@ class socketData():
     def prepare_response(self, competitor_list):
         socketio.emit("prepare", competitor_list, to=self.sid, namespace="/competition")
 
-    def problem_response(self, problem_id=None, problem=None):
+    def problem_response(self, problem_id=None, problem=None, time=30):
         try:
             res = {
                 'problemID': problem_id,
                 'content': problem['content'],
+                'code': problem['code'],
                 'type': problem['classification'],
-                'time': 30, # TODO: to be precise
+                'time': time, # TODO: to be precise
                 'subproblem':problem['subproblem'],
             }
             socketio.emit("problem", res, to=self.sid, namespace="/competition")
@@ -48,6 +49,7 @@ class competingData():
         self.sidlist = sid_list
         self.userdata = {sid: {'answer':[], 'score':0, 'score_list':[], 'alive':True} for sid in sid_list}
         self.problems = []
+        self.time = []
         self.state = -1 # -1 for not start, >= 0 for problem_id
         self.timer = None
         self.mutex = threading.Lock()
@@ -105,13 +107,14 @@ def on_cancel():
     except:
         pass
 
-def to_problem(competing_hash):
+def to_problem(competing_hash, time=30):
     global waiting_pool, socket_pool, competing_pool
     competing_data = competing_pool[competing_hash]
     competing_data.mutex.acquire()
     for sid in competing_data.sidlist:
-            socket_pool[sid].problem_response(competing_data.state, competing_pool[competing_hash].problems[competing_data.state])
-    scheduler.add_job(func=on_timer, args=(competing_hash, competing_data.state), id=competing_hash, trigger='interval',seconds=30, replace_existing=True, max_instances=1)
+            socket_pool[sid].problem_response(competing_data.state, competing_pool[competing_hash].problems[competing_data.state], competing_pool[competing_hash].time[competing_data.state])
+
+    scheduler.add_job(func=on_timer, args=(competing_hash, competing_data.state), id=competing_hash, trigger='interval',seconds=time, replace_existing=True, max_instances=1)
 
     competing_data.mutex.release()
 
@@ -132,7 +135,7 @@ def to_next(competing_hash):
     if lastQuestion:
         return
     else:
-        s = threading.Timer(3, to_problem, (competing_hash,))
+        s = threading.Timer(3, to_problem, (competing_hash, competing_data.time[competing_data.state]))
         s.start()
         
 
@@ -235,14 +238,14 @@ def on_start():
         elif socket_pool[sid].state == 1 and other_ready:
             competing_pool[competing_hash].state = 0
             competing_pool[competing_hash].problems = db_get_random_questions()
-            
-            scheduler.add_job(func=on_timer, args=(competing_hash, 0), id=competing_hash, trigger='interval',seconds=30, replace_existing=True, max_instances=1)
+            competing_pool[competing_hash].time = [20,30,40,60] #TODO:
+            scheduler.add_job(func=on_timer, args=(competing_hash, 0), id=competing_hash, trigger='interval',seconds=competing_pool[competing_hash].time[0], replace_existing=True, max_instances=1)
             # TODO: ERROR PROCESSING
             print("in problem response")
             for t_sid in competing_data.sidlist:
                 
                 socket_pool[t_sid].state = 3
-                socket_pool[t_sid].problem_response(0, competing_pool[competing_hash].problems[0])
+                socket_pool[t_sid].problem_response(0, competing_pool[competing_hash].problems[0], time=competing_pool[competing_hash].time[0])
         
     except Exception as e:
         print(e)

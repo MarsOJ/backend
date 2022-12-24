@@ -114,10 +114,12 @@ def get_info():
             username = session['username']
         info = db_select_user(username)
         del info['pwhash']
+        del info['favorite']
         if not info:
             raise Exception('Database Error')
         return json.dumps(info), 200
     except Exception as e:
+        print(e)
         return str(e), 400
 
 @account_bp.route("/profile/", methods=['GET', 'POST'])
