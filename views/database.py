@@ -42,7 +42,7 @@ def db_competition_settlement_result(problemID, userResult):
     try:
         collection = db["record"]
         insert_content = {
-            'problemID':problemID,
+            'problemID':problemID, # problem list
             'userResult':userResult, # [{'username':, 'correctness':[], 'score':[]}, ...]
             'userList':[i['username'] for i in userResult],
             'date':datetime.datetime.now()
@@ -61,6 +61,17 @@ def db_select_record(_id):
         return collection.find_one(info_data)
     except Exception as e:
         return False
+
+def db_delete_record(_id):
+    try:
+        collection = db["record"]
+        info_data = {
+            "_id": ObjectId(_id)
+        }
+        return collection.delete_one(info_data)
+    except Exception as e:
+        return False
+
 
 def db_next_record(username='', _id=''):
     try:
