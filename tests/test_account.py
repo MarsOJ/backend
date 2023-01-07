@@ -14,6 +14,14 @@ def test_login(client):
         assert '200' in str(res)
         client.post('/account/login/', json=user_data)
         assert "username" in session
+        client.get('/account/info/', json=user_data)
+        assert "200" in str(res)
+        client.post('/account/profile/', json=user_data)
+        assert "200" in str(res)
+        client.get('/account/profile/', json=user_data)
+        assert "200" in str(res)
+        client.post('/account/signature/', json=user_data)
+        assert "200" in str(res)
         res = client.delete('/account/delete/', json=user_data)
         assert '200' in str(res)
 
