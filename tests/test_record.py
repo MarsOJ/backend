@@ -16,8 +16,8 @@ def test_favourite(client):
     }
     
     with client:
-        res = client.delete('/account/delete/', json=user_data)
-        assert '200' in str(res)
+        # res = client.delete('/account/delete/', json=user_data)
+        # assert '200' in str(res)
         res = client.post('/account/register/', json=user_data)
         assert '200' in str(res)
         client.post('/account/login/', json=user_data)
@@ -40,6 +40,8 @@ def test_favourite(client):
         assert '200' in str(res)
 
         res = client.get('/record/count/',json = user_data)
+        assert '200' in str(res)
+        res = client.delete('/account/delete/', json=user_data)
         assert '200' in str(res)
 
 

@@ -149,12 +149,21 @@ def test_question_insert(client):
           {'content':'美国的顶级域名是：', 'choice':['.cn','.hk','.us','.com']}, 
           {'content':'中国的顶级域名是：', 'choice':['.cn','.hk','.us','.com']}, 
       ],
-      'owner': 'qewr',
       'source': 'CSP-J',
       'difficultyInt':1,
   }
-        
+    user_data = {
+        "username": "anna1023",
+        "password": "123456",
+    }
     with client:
+        # res = client.delete('/account/delete/', json=user_data)
+        # assert '200' in str(res)
+        res = client.post('/account/register/', json=user_data)
+        assert '200' in str(res)
+        client.post('/account/login/', json=user_data)
+        assert "username" in session
+
         res = client.post('/question/insert/', json=question1_data)
         assert '200' in str(res)
         res = client.get('/question/count/')
@@ -180,6 +189,9 @@ def test_question_insert(client):
         assert '200' in str(res)   
         res = client.get('/question/count/')
         assert '200' in str(res)     
+
+        res = client.delete('/account/delete/', json=user_data)
+        assert '200' in str(res)
 
         # res = client.post('/question/upload/')
         # assert '200' in str(res)     

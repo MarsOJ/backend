@@ -66,7 +66,7 @@ def insert_single_question():
         explanation= data['explanation']
         subproblem = data['subproblem']
         source= data['source']
-        owner = data['owner']
+        owner= session['username']
         difficultyInt= data['difficultyInt']
     except Exception as e:
         print(e)
