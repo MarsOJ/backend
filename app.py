@@ -7,8 +7,12 @@ from views.question import question_bp
 from views.favorite import favorite_bp
 from views.record import record_bp
 from sockets import socketio
+import os
 
 app = Flask(__name__)
+
+app.config["SECRET_KEY"] = "secret!qwq"
+
 app.register_blueprint(database_bp, url_prefix="/database")
 app.register_blueprint(account_bp, url_prefix="/account")
 app.register_blueprint(info_bp, url_prefix="/info")
@@ -16,13 +20,11 @@ app.register_blueprint(question_bp, url_prefix="/question")
 app.register_blueprint(favorite_bp, url_prefix="/favorite")
 app.register_blueprint(record_bp, url_prefix="/record")
 
-app.config["SECRET_KEY"] = "secret!qwq"
 
 socketio.init_app(app)
-# app.config['DEBUG'] = True
-
 
 CORS(app, supports_credentials=True)
+
 
 @app.route("/")
 def hello_world():
