@@ -26,7 +26,7 @@ def test_favourite(client):
         client.post('/account/login/', json=user_data)
         assert "username" in session
 
-        db_competition_settlement_result([1], ['hsuuuuuuu1023'])
+        db_competition_settlement_result([1], [])
         res = client.get('/record/personal/')
         assert '200' in str(res)
         res = client.get('/record/all/?p=1&itemPerPage=1')
