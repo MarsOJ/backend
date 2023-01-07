@@ -8,12 +8,16 @@ def test_login(client):
         "password": "123456"
     }
     with client:
+        # res = client.delete('/account/delete/', json=user_data)
+        # assert '200' in str(res)
         res = client.post('/account/register/', json=user_data)
         assert '200' in str(res)
         client.post('/account/login/', json=user_data)
         assert "username" in session
         res = client.delete('/account/delete/', json=user_data)
         assert '200' in str(res)
+
+        pass
 
 def test_logout(client):
     user_data = {
@@ -34,6 +38,7 @@ def test_logout(client):
         assert '400' in str(res)
         res = client.delete('/account/delete/', json=user_data)
         assert '200' in str(res)
+        pass
 
 def test_change_password(client):
     user_data = {
@@ -69,3 +74,4 @@ def test_change_password(client):
         assert "username" not in session
         res = client.delete('/account/delete/', json=delete_data)
         assert '200' in str(res)
+        pass

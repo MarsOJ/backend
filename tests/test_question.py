@@ -139,21 +139,48 @@ import json
 
 def test_question_insert(client):
     question1_data = {
-            'classification': 1,
-            'content': '判断以下命题',
-            'answer':['B','C', 'A'],
-            'explanation':'hk for .hk, us for .us, cn for .cn',
-            'subproblem':[
-                {'content':'香港的顶级域名是：', 'choice':['.cn','.hk','.us','.com']}, 
-                {'content':'美国的顶级域名是：', 'choice':['.cn','.hk','.us','.com']}, 
-                {'content':'中国的顶级域名是：', 'choice':['.cn','.hk','.us','.com']}, 
-            ],
-            'source': 'CSP-J',
-            'difficultyInt':1,
-        } 
+      'classification': 1,
+      'content': '判断以下命题',
+      'code':'```C++\n#include <cstdlib>\n...\n```',
+      'answer':['B','C', 'A'],
+      'explanation':'hk for .hk, us for .us, cn for .cn',
+      'subproblem':[
+          {'content':'香港的顶级域名是：', 'choice':['.cn','.hk','.us','.com']}, 
+          {'content':'美国的顶级域名是：', 'choice':['.cn','.hk','.us','.com']}, 
+          {'content':'中国的顶级域名是：', 'choice':['.cn','.hk','.us','.com']}, 
+      ],
+      'owner': 'qewr',
+      'source': 'CSP-J',
+      'difficultyInt':1,
+  }
         
     with client:
-        # res = client.post('/question/insert/', json=question1_data)
-        # assert '200' in str(res)
-        pass
+        res = client.post('/question/insert/', json=question1_data)
+        assert '200' in str(res)
+        res = client.get('/question/count/')
+        assert '200' in str(res)
+        res = client.get('/question/list/?p=1&itemPerPage=1')
+        assert '200' in str(res)
+        res_data = json.loads(res.data)[0]
+        res_id = res_data['id']
+
+        del question1_data['source']
+        question1_data['id'] = res_id
+        res = client.post('/question/update/', json=question1_data)
+        assert '400' in str(res)
+        question1_data['source'] = 'CSP-J'
+        res = client.post('/question/update/', json=question1_data)
+        assert '200' in str(res)
+        res = client.get('/question/details/{}'.format(res_id))
+        assert '200' in str(res)
+
+        res = client.delete('/question/delete/', json={
+         'problemID':[res_id]
+        })
+        assert '200' in str(res)   
+        res = client.get('/question/count/')
+        assert '200' in str(res)     
+
+        # res = client.post('/question/upload/')
+        # assert '200' in str(res)     
         

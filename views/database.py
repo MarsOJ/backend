@@ -119,6 +119,7 @@ def db_select_user(name):
         }
         res = collection.find_one(user) # return dict
         # res['_id'] = str(res['_id'])
+        
         if isinstance(res, dict) and '_id' in res.keys():
             del res['_id']
         return res
@@ -334,8 +335,11 @@ def db_delete_favorite(username, favorite_id):
         print(str(e))
         return str(e), False
 
+
 def db_rename_favorite(username, new_name, favorite_id):
     try:
+        print('enter db_rename_favorite')
+        # pdb.set_trace()
         item = db_select_user(username)
         collection = db["account"]
 
@@ -346,7 +350,7 @@ def db_rename_favorite(username, new_name, favorite_id):
         update_res = collection.update_one({'username':username}, {'$set':{'favorite':favorites}})
         if update_res.modified_count != 1:
             return 'Update error', False
-        return True
+        return 'OK',True
     except:
         return 'Key error', False
 

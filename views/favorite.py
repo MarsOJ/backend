@@ -43,12 +43,16 @@ def favorite_list():
     elif (request.method == 'PUT'):
         data = json.loads(request.data)
         try:
+            print('enter put(/favorite/list/')
             username = session['username']
             favoriteID = data['id']
             new_name = data['newName']
+            print('put(/favorite/list/',favoriteID)
             if favoriteID == '0':
                 return 'Default cannot be renamed', 400
+            print('thete put(/favorite/list/')
             _, state = db_rename_favorite(username=username, new_name=new_name, favorite_id=favoriteID)
+            print('hello put(/favorite/list/')
             if state:
                 return 'success', 200
             return _, 400
@@ -80,6 +84,7 @@ def favorite_problem():
     if (request.method == 'POST'):
         data = json.loads(request.data)
         try:
+            print('enter favorite_problem')
             username = session['username']
             favoriteID = data['destID']
             problemID = data['problemID']
@@ -126,17 +131,23 @@ def favorite_problem():
 
     elif (request.method == 'GET'):
         try:
+            import pdb
+            # pdb.set_trace()
+            print("enter get('/favorite/problem/: ,")
+            print(session['username'])
+            print('hello')
             username = session['username']
+            print('hello')
             page = int(request.args.get('p'))
             itemPerPage = int(request.args.get('itemPerPage'))
             favoriteID = request.args.get('id', None)
             if not favoriteID:
                 favoriteID = '0'
-
+            print('hello')
             select_res, state = db_select_favorite_problem(username=username, favorite_id=favoriteID)
             if not state:
                 raise Exception('database error')
-
+            
             ret = []
             for pid in select_res[(page - 1) * itemPerPage : page * itemPerPage]:
                 res = db_select_questions(_id=pid[0])
@@ -157,8 +168,8 @@ def favorite_problem():
                         'type':0,
                         'date':"N/A",
                     })
-            print(ret)
+            print("200 get('/favorite/problem/: ",ret)
             return json.dumps(ret), 200
         except Exception as e:
-            print(e)
+            print("400 get('/favorite/problem/: ",e)
             return str(e), 400

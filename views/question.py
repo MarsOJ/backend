@@ -66,7 +66,7 @@ def insert_single_question():
         explanation= data['explanation']
         subproblem = data['subproblem']
         source= data['source']
-        owner= session['username']
+        owner = data['owner']
         difficultyInt= data['difficultyInt']
     except Exception as e:
         print(e)
@@ -74,6 +74,7 @@ def insert_single_question():
 
     if db_insert_question(classification=classification,content=content, subproblem=subproblem,
                         answer=answer,explanation=explanation,source =source,owner=owner,difficultyInt=difficultyInt):
+        # print('db_insert_question is True')
         return "Success", 200
     return "Insert Error", 400
 
@@ -131,6 +132,7 @@ def get_details(id):
     except Exception as e:
         return str(e), 400
 
+
 @authority_required
 @question_bp.route("/list/", methods=['GET'])
 def problem_list():
@@ -168,3 +170,4 @@ def problem_count():
     except Exception as e:
         print(e)
         return str(e), 400
+

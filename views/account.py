@@ -61,11 +61,14 @@ def register():
         data = json.loads(request.data)
         username = data['username']
         password = data['password']
+        print('/account/register/')
         res = db_select_user(username)
         if res is False:
             return "Register Error", 400
+        print('res1 /account/register/')
         if res is not None:
             return "Repeated Username", 400
+        print('res2 /account/register/')
         if not db_insert_user(username, password):
             return "Register Error", 400
         return "Success", 200
@@ -76,10 +79,14 @@ def register():
 def delete():
     try:
         data = json.loads(request.data)
-        username = session['username']
+
+        # MODIFIED
+        username = data['username']
         password = data['password']
+        print('/account/delete/: 1')
         if not db_verify_user(username, password):
             return "Username/Password Error", 400
+        print('/account/delete/: 2')
         if not db_delete_user(username):
             return "Delete User Error", 400
         return "Success", 200
