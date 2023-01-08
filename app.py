@@ -7,12 +7,17 @@ from views.question import question_bp
 from views.favorite import favorite_bp
 from views.record import record_bp
 from sockets import socketio
-from flask_swagger_ui import get_swaggerui_blueprint
-from flasgger import Swagger
+
+
 
 app = Flask(__name__)
 
-swagger = Swagger(app)
+try:
+    from flask_swagger_ui import get_swaggerui_blueprint
+    from flasgger import Swagger
+    swagger = Swagger(app)
+except Exception as e:
+    print(e)
 # SWAGGER_URL = '/api/docs'  # URL for exposing Swagger UI (without trailing '/')
 # API_URL = 'http://petstore.swagger.io/v2/swagger.json'  # Our API url (can of course be a local resource)
 # # Call factory function to create our blueprint
