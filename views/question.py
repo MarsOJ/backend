@@ -28,6 +28,28 @@ TEMPFILES_DIR = 'tempfiles'
 
 @question_bp.route("/upload/", methods=['POST'])
 def upload_problem():
+    """
+    上传题目文件
+    ---
+    tags:
+      - 题目题库
+    description:
+        个人对战记录，一直往下拖，一次五条,注册成功返回username,200
+    parameters:
+      - name: lastID
+        type: string
+        required: true
+        description: 用户名
+      - name: password
+        type: string
+        required: true
+        description: 密码
+    responses:
+      200:
+          description: OK,return username,200
+      400:
+        description: Username/Password Error
+    """
     try:
         file = request.files['file']
         filedir = TEMPFILES_DIR + '/' + str(uuid.uuid4())
@@ -58,6 +80,48 @@ def upload_problem():
 
 @question_bp.route("/insert/", methods=['POST'])
 def insert_single_question():
+    """
+    上传一道题
+    ---
+    tags:
+      - 题目题库
+    description:
+        上传一道题,json格式,成功返回“Success", 200
+    parameters:
+      - name: classification
+        type: int
+        required: true
+        description: 题目分类
+      - name: content
+        type: string
+        required: true
+        description: 内容
+      - name: answer
+        type: list
+        required: true
+        description: 答案
+      - name: explanation
+        type: string
+        required: true
+        description: 解析
+      - name: subproblem
+        type: list
+        required: true
+        description: 子问题
+      - name: source
+        type: string
+        required: true
+        description: 来源
+      - name: difficultyInt
+        type: int
+        required: true
+        description: 题目难度
+    responses:
+      200:
+          description: OK,return "Success", 200
+      400:
+        description: Username/Password Error
+    """
     data = json.loads(request.data)
     try:
         classification= data['classification']
@@ -81,6 +145,48 @@ def insert_single_question():
 
 @question_bp.route("/update/", methods=['POST'])
 def update_single_question():
+    """
+    更新一道题
+    ---
+    tags:
+      - 题目题库
+    description:
+        更新一道题,json格式,成功返回“Success", 200
+    parameters:
+      - name: id
+        type: object<id>
+        required: true
+        description: 题目的数据库的id
+      - name: content
+        type: string
+        required: true
+        description: 内容
+      - name: answer
+        type: list
+        required: true
+        description: 答案
+      - name: explanation
+        type: string
+        required: true
+        description: 解析
+      - name: subproblem
+        type: list
+        required: true
+        description: 子问题
+      - name: source
+        type: string
+        required: true
+        description: 来源
+      - name: difficultyInt
+        type: int
+        required: true
+        description: 题目难度
+    responses:
+      200:
+          description: OK,return "Success", 200
+      400:
+        description: Username/Password Error
+    """
     data = json.loads(request.data)
     try:
         problem_id = data['id']
@@ -101,6 +207,24 @@ def update_single_question():
 @authority_required
 @question_bp.route("/delete/", methods=['DELETE'])
 def delete_question():
+    """
+    删除特定题目列表
+    ---
+    tags:
+      - 题目题库
+    description:
+        删除一道题,json格式,成功返回[成功删除的数量], 200
+    parameters:
+      - name: id
+        type: object<id> list 
+        required: true
+        description: 题目的数据库的id的list
+    responses:
+      200:
+          description: OK,return [成功删除的数量], 200
+      400:
+        description: return "Bad Request", 400
+    """
     try:
         data = json.loads(request.data)
         print(data)
@@ -118,6 +242,42 @@ def delete_question():
 
 @question_bp.route("/details/<id>", methods=['GET'])
 def get_details(id):
+    """
+    获取特定题目的详细信息
+    ---
+    tags:
+      - 题目题库
+    description:
+        获取特定题目的详细信息,json格式,成功返回[成功删除的数量], 200
+    parameters:
+      - name: id
+        type: object<id>
+        required: true
+        description: 资讯的数据库的id
+    responses:
+      200:
+        description: OK,return "Success", 200
+        schema:
+          id: id
+          properties:
+            id:
+              type: object<id>
+              description: The id of the question
+            title:
+              type: string
+            content:
+              type: string
+            source:
+              type: string
+            submit_date:
+              type: object
+              description: format "YYYY-MM-DD HH:mm:ss.mmmmmm"
+            last_modified_date:
+              type: object
+              description: format "YYYY-MM-DD HH:mm:ss.mmmmmm"
+      400:
+        description: return "Get Details Error", 400或"Get Details Error", 400
+    """
     try:
         res = db_select_questions(id)
         if (len(res) > 0):
@@ -136,6 +296,43 @@ def get_details(id):
 @authority_required
 @question_bp.route("/list/", methods=['GET'])
 def problem_list():
+    """
+    获取特定题目的详细信息
+    ---
+    tags:
+      - 题目题库
+    description:
+        获取特定题目的详细信息,json格式,成功返回[成功删除的数量], 200
+    parameters:
+      - name: p
+        type: args
+        required: true
+        description: 页面数量，args
+      - name: itemPerPage
+        type: args
+        required: true
+        description: 一个页面含有题目的数量，args
+    responses:
+      200:
+        description: return [{格式如下}], 200
+        schema:
+          id: id
+          properties:
+            id:
+              type: object<id>
+              description: The id of the info
+            title:
+              type: string
+            content:
+              type: string
+            type:
+              type: int
+            date:
+              type: object
+              description: format "YYYY-MM-DD HH:mm:ss.mmmmmm"
+      400:
+        description: return "database error", 400
+    """
     try:
         page = int(request.args.get('p'))
         itemPerPage = int(request.args.get('itemPerPage'))

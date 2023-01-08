@@ -17,6 +17,37 @@ def record_index():
 
 @record_bp.route("/personal/", methods=['GET', 'POST'])
 def get_personal():
+    """
+    个人对战记录
+    ---
+    tags:
+      - 查看记录
+    description:
+        个人对战记录，一直往下拖，一次五条
+    parameters:
+      - name: lastID
+        type: string
+        required: false
+        description: 无此字段或为空字符串则为从头开始
+    responses:
+      200:
+        description: return [{格式如下}], 200
+        schema:
+          id: id
+          properties:
+            id:
+              type: object<id>
+              description: The id of the record
+            rank:
+              type: int
+            scores:
+              type: int
+            date:
+              type: object
+              description: format "YYYY-MM-DD HH:mm:ss.mmmmmm"
+      400:
+        description: return error_description, 400
+    """
     try:
         try:
             data = json.loads(request.data)
@@ -44,6 +75,41 @@ def get_personal():
 @authority_required
 @record_bp.route("/all/", methods=['GET'])
 def get_list():
+    """
+    管理员查询对战记录
+    ---
+    tags:
+      - 查看记录
+    description:
+        管理员查询对战记录接口
+    parameters:
+      - name: p
+        type: args
+        required: true
+        description: 页面数量，args
+      - name: itemPerPage
+        type: args
+        required: true
+        description: 一个页面含有record的数量，args
+    responses:
+      200:
+        description: return [{格式如下}], 200
+        schema:
+          id: id
+          properties:
+            id:
+              type: object<id>
+              description: The id of the record
+            rank:
+              type: int
+            scores:
+              type: int
+            date:
+              type: object
+              description: format "YYYY-MM-DD HH:mm:ss.mmmmmm"
+      400:
+        description: return error_description, 400
+    """
     try:
         page = int(request.args.get('p'))
         itemPerPage = int(request.args.get('itemPerPage'))
@@ -65,6 +131,28 @@ def get_list():
 
 @record_bp.route("/rank/", methods=['GET'])
 def get_rank():
+    """
+    周榜排行榜
+    ---
+    tags:
+      - 查看记录
+    description:
+        周榜排行榜：top10 用户名、签名、本周比赛得分（冠军3分，亚军2分...
+    responses:
+      200:
+        description: return [{格式如下}], 200
+        schema:
+          id: id
+          properties:
+            username:
+              type: string
+            signature:
+              type: string
+            score:
+              type: int
+      400:
+        description: return error_description, 400
+    """
     try:
         find_res, state = db_ranklist()
         if not state:
@@ -77,6 +165,19 @@ def get_rank():
 @authority_required
 @record_bp.route("/download/<id>", methods=['GET'])
 def download_record_one(id):
+    """
+    管理员下载对战记录
+    ---
+    tags:
+      - 查看记录
+    description:
+        管理员下载对战记录文件
+    responses:
+      200:
+        description: 返回文件， ['题目序号', '题目ID'] ['usernames']
+      400:
+        description: return error_description, 400
+    """
     try:
         find_res = db_select_record(id)        
         if not find_res:
@@ -111,6 +212,19 @@ def download_record_one(id):
 @authority_required
 @record_bp.route("/download-all/", methods=['GET'])
 def download_record():
+    """
+    管理员下载所有对战记录
+    ---
+    tags:
+      - 查看记录
+    description:
+        管理员下载所有对战记录
+    responses:
+      200:
+        description: 返回文件， ['对战记录ID','时间','第一名','第二名','第三名','第四名','题目ID']
+      400:
+        description: return error_description, 400
+    """
     try:
         find_res, state = db_list_record()        
         if state is False:
@@ -152,6 +266,19 @@ def download_record():
 @authority_required
 @record_bp.route("/count/", methods=['GET'])
 def get_cound():
+    """
+    管理员查询record个数
+    ---
+    tags:
+      - 资讯
+    description:
+        管理员查询对战记录个数
+    responses:
+      200:
+        description: OK,return {"count"： int}, 200
+      400:
+        description: return 'database error', 400
+    """
     try:
         res, state = db_count_record()
         if not state:
