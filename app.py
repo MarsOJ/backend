@@ -45,10 +45,9 @@ app.register_blueprint(record_bp, url_prefix="/record")
 app.config["SECRET_KEY"] = "secret!qwq"
 
 socketio.init_app(app)
-# app.config['DEBUG'] = True
-
 
 CORS(app, supports_credentials=True)
+
 
 @app.route("/")
 def hello_world():

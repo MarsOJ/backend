@@ -4,7 +4,20 @@ import json
 # This file is pytest-related part, run "pytest" in terminal and automatically start a test
 
 def test_favourite(client):
-    
+    question1_data = {
+      'classification': 1,
+      'content': '判断以下命题',
+      'code':'```C++\n#include <cstdlib>\n...\n```',
+      'answer':['B','C', 'A'],
+      'explanation':'hk for .hk, us for .us, cn for .cn',
+      'subproblem':[
+          {'content':'香港的顶级域名是：', 'choice':['.cn','.hk','.us','.com']}, 
+          {'content':'美国的顶级域名是：', 'choice':['.cn','.hk','.us','.com']}, 
+          {'content':'中国的顶级域名是：', 'choice':['.cn','.hk','.us','.com']}, 
+      ],
+      'source': 'CSP-J',
+      'difficultyInt':1,
+  }
     favorite_data = {
    'p':1,
    'itemPerPage':1,
@@ -23,6 +36,9 @@ def test_favourite(client):
         assert '200' in str(res)
         client.post('/account/login/', json=user_data)
         assert "username" in session
+
+        res = client.post('/question/insert/', json=question1_data)
+        assert '200' in str(res)
 
         problem_res = client.get('/question/list/?p=1&itemPerPage=1')
         assert '200' in str(problem_res)
@@ -77,8 +93,15 @@ def test_favourite(client):
         res = client.delete('/favorite/problem/', json=user_data)
         assert '200' in str(res)
 
+        res = client.delete('/question/delete/', json={
+         'problemID':[problem_id]
+        })
+        assert '200' in str(res) 
+
         res = client.delete('/account/delete/', json=user_data)
         assert '200' in str(res)
+
+
         # res = client.delete('/account/delete/', json=user_data)
         # assert '200' in str(res)
 

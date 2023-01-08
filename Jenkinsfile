@@ -35,6 +35,7 @@ pipeline {
         sh 'chmod 777 /var/log/mongodb'
         sh 'ln -sf /usr/local/mongodb/mongodbserver/bin/mongod /usr/bin/mongod&& ln -sf /usr/local/mongodb/mongodbserver/bin/mongo /usr/bin/mongo && ln -sf /usr/local/mongodb/mongodbserver/bin/mongos /usr/bin/mongos'
         sh 'mongod --dbpath /var/lib/mongo --logpath /var/log/mongodb/mongod.log --fork'
+        // mongod --dbpath /var/lib/mongodb --logpath /var/log/mongodb/mongod.log --fork
       }
     }
 

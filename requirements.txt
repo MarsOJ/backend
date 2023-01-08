@@ -11,3 +11,4 @@ pytest-cov
 flake8
 pymongo
 gunicorn
+python-dotenv

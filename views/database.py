@@ -1,5 +1,7 @@
-from flask import Blueprint, Flask, request, session, jsonify
+from flask import Blueprint, Flask, request, session, jsonify, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
+from dotenv import load_dotenv, find_dotenv
+import os
 import pymongo
 from bson.objectid import ObjectId
 import datetime
@@ -7,7 +9,10 @@ import random
 import uuid
 
 database_bp = Blueprint("database", __name__)
-client = pymongo.MongoClient("mongodb://localhost:27017/")
+
+load_dotenv(dotenv_path=r'../', verbose=True)
+DB_URL = os.getenv('FLASK_APP_DB_URL')
+client = pymongo.MongoClient(DB_URL)
 db = client["MarsOJ"]
 
 # use blueprint as app
@@ -37,7 +42,7 @@ def db_competition_settlement_result(problemID, userResult):
     try:
         collection = db["record"]
         insert_content = {
-            'problemID':problemID,
+            'problemID':problemID, # problem list
             'userResult':userResult, # [{'username':, 'correctness':[], 'score':[]}, ...]
             'userList':[i['username'] for i in userResult],
             'date':datetime.datetime.now()
@@ -56,6 +61,17 @@ def db_select_record(_id):
         return collection.find_one(info_data)
     except Exception as e:
         return False
+
+def db_delete_record(_id):
+    try:
+        collection = db["record"]
+        info_data = {
+            "_id": ObjectId(_id)
+        }
+        return collection.delete_one(info_data)
+    except Exception as e:
+        return False
+
 
 def db_next_record(username='', _id=''):
     try:
@@ -331,7 +347,7 @@ def db_delete_favorite(username, favorite_id):
         if delete_res.modified_count != 1:
             return 'Update error', False
         return 'Success', True
-    except:
+    except Exception as e:
         print(str(e))
         return str(e), False
 
