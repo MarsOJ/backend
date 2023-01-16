@@ -319,7 +319,7 @@ def on_result():
 def on_disconnect():
     global waiting_pool, socket_pool, competing_pool
     sid = request.sid
-    competing_hash = socket_pool[this_sid].competing_hash
+    competing_hash = socket_pool[sid].competing_hash
     competing_data = competing_pool[competing_hash]
     temp = []
     for i in len(competing_data.problems):
