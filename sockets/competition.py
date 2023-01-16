@@ -194,7 +194,7 @@ def on_finish(problem_id, answer):
         # whether it's the last problem
         next_flag = True
         for t_sid in sid_list:
-            if len(competing_data.userdata[t_sid]['answer']) != competing_data.state + 1:
+            if len(competing_data.userdata[t_sid]['answer']) < competing_data.state + 1:
                 next_flag = False
         
         ret_form = {
@@ -238,7 +238,7 @@ def on_start():
         elif socket_pool[sid].state == 1 and other_ready:
             competing_pool[competing_hash].state = 0
             competing_pool[competing_hash].problems = db_get_random_questions()
-            competing_pool[competing_hash].time = [20,30,40,60] #TODO:
+            competing_pool[competing_hash].time = [40,50,60,90] #TODO:
             scheduler.add_job(func=on_timer, args=(competing_hash, 0), id=competing_hash, trigger='interval',seconds=competing_pool[competing_hash].time[0], replace_existing=True, max_instances=1)
             # TODO: ERROR PROCESSING
             print("in problem response")
@@ -318,4 +318,14 @@ def on_result():
 @socketio.on("disconnect", namespace="/competition")
 def on_disconnect():
     global waiting_pool, socket_pool, competing_pool
+    sid = request.sid
+    competing_hash = socket_pool[this_sid].competing_hash
+    competing_data = competing_pool[competing_hash]
+    temp = []
+    for i in len(competing_data.problems):
+        temp.append([0 for j in len(competing_data.problems[i]['answer'])])
+    # competing_data.problems[competing_data.state]['answer']
+    competing_data.mutex.acquire()
+    competing_data.userdata[sid]['score_list'] = temp
+    competing_data.mutex.release()
     pass
